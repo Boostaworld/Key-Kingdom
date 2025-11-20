@@ -1,4 +1,4 @@
-# SoftLynx UI Components
+# Key-Kingdom UI Components
 
 This file summarizes how to use the design tokens in `TOKENS.css` for basic components.
 
@@ -85,5 +85,5 @@ Spacing between cards: `var(--sl-space-lg)` to `var(--sl-space-xl)`.
 - High contrast: light text on dark backgrounds
 - Use `var(--sl-font-display)` for headings, `var(--sl-font-body)` for all content
 
-Refer to `SOFTLYNX_BRAND_SPEC.md` for deeper brand rules.
+Refer to `Key-Kingdom_BRAND_SPEC.md` for deeper brand rules.
 
