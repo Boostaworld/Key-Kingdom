@@ -1,0 +1,68 @@
+{
+  "name": "SoftLynx",
+  "version": "1.0",
+  "description": "Neon-tech brand focused on software access, linking, and connectivity.",
+  "colors": {
+    "primary": "#1FB0FF",
+    "glowInner": "#12A0F9",
+    "glowOuter": "#5FD8FF",
+    "glowHalo": "#66E1FF",
+    "background": "#03060A",
+    "gray1": "#1A1F25",
+    "gray2": "#2A323A",
+    "text": "#FFFFFF"
+  },
+  "typography": {
+    "display": {
+      "family": "Eurostile Next",
+      "fallbacks": ["Orbitron", "system-ui", "sans-serif"]
+    },
+    "body": {
+      "family": "Inter",
+      "fallbacks": ["Roboto", "system-ui", "sans-serif"]
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 16,
+    "lg": 24,
+    "xl": 32
+  },
+  "radius": {
+    "sm": 6,
+    "md": 12,
+    "lg": 16
+  },
+  "voice": {
+    "tone": ["clear", "efficient", "technical-friendly", "modern", "confident"],
+    "avoid": ["slang", "gamer-talk", "corporate-jargon", "overhype"]
+  },
+  "ui": {
+    "buttons": {
+      "primary": {
+        "background": "#12A0F9",
+        "text": "#FFFFFF",
+        "glow": "#5FD8FF"
+      },
+      "secondary": {
+        "background": "#1A1F25",
+        "border": "#1FB0FF",
+        "text": "#1FB0FF"
+      }
+    },
+    "cards": {
+      "background": "#0A0F14",
+      "border": "#1A1F25"
+    },
+    "inputs": {
+      "background": "#1A1F25",
+      "border": "#2A323A",
+      "text": "#FFFFFF"
+    }
+  },
+  "backgroundRules": {
+    "allowed": ["#03060A", "dark gradients"],
+    "disallowed": ["white", "light gray", "bright backgrounds"]
+  }
+}
