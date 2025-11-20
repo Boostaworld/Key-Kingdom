@@ -1,0 +1,15 @@
+# Node / web stuff if you add it later
+node_modules/
+dist/
+build/
+
+# Design exports
+*.psd
+*.ai
+*.sketch
+*.fig
+*.xd
+
+# OS crap
+.DS_Store
+Thumbs.db
