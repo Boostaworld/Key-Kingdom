@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import type { Product } from "@/data/types";
 
@@ -11,7 +12,7 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="rounded-2xl border border-[#1A1F25] bg-[#0A0F14] p-10 text-center text-zinc-300">
-        No products match your filters yet. Try a different category or search.
+        No products match your filters yet. Try a different search.
       </div>
     );
   }
@@ -53,7 +54,7 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
                 />
               </div>
               <div className="flex flex-col">
-                <p className="text-xs uppercase tracking-[0.24em] text-[#1FB0FF]">{product.category}</p>
+                {/* category removed */}
                 <h3 className="text-lg font-semibold text-white">{product.name}</h3>
               </div>
             </div>
@@ -76,11 +77,16 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
             </div>
           </div>
 
-          <p className="line-clamp-3 min-h-[54px] text-sm text-zinc-300">{product.tagline ?? product.description}</p>
+          <p className="line-clamp-3 min-h-[54px] text-sm text-zinc-300">
+            {product.tagline ?? product.description}
+          </p>
 
           <div className="mt-auto flex items-center justify-between text-sm text-zinc-400">
             <span>
-              From <span className="font-semibold text-[#1FB0FF]">${product.lowestPrice.toFixed(2)}</span>
+              From{" "}
+              <span className="font-semibold text-[#1FB0FF]">
+                ${product.lowestPrice.toFixed(2)}
+              </span>
             </span>
             <button
               type="button"
