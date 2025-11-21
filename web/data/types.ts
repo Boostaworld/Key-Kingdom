@@ -41,6 +41,7 @@ export interface Product {
     description: string;
     features: string[];
     sortOrder?: number; // lower = closer to the front of the list
+    isUpdated: boolean;
 
     vendorLinks: VendorLink[];
     lowestPrice: number;
@@ -48,4 +49,5 @@ export interface Product {
 
     tags?: string[];
     lastUpdated?: string;
+    isUpdated: boolean;
 }

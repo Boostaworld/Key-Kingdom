@@ -58,6 +58,7 @@ const productSeeds: ProductSeed[] = [
             },
         ],
         tags: ["executor", "roblox"],
+        isUpdated: true,
         lastUpdated: "2025-11-15",
     },
     {
@@ -98,6 +99,7 @@ const productSeeds: ProductSeed[] = [
             },
         ],
         tags: ["executor", "recovery", "vault"],
+        isUpdated: true,
         lastUpdated: "2025-10-02",
     },
     {
@@ -139,6 +141,7 @@ const productSeeds: ProductSeed[] = [
             },
         ],
         tags: ["executor", "performance", "analytics"],
+        isUpdated: false,
         lastUpdated: "2025-09-12",
     },
 ];
