@@ -20,6 +20,12 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Admin automation & audit
+
+- Admin credentials are configured with `ADMIN_USERNAME` and `ADMIN_PASSWORD` (session cookies and HTTP Basic both supported).
+- Server-to-server and Python automation can authenticate with a bearer token set via `ADMIN_API_TOKEN` (optionally label the actor with `ADMIN_API_ACTOR`).
+- Set `ADMIN_AUDIT_WEBHOOK_URL` to receive JSON payloads (Discord-compatible `content` plus structured metadata) whenever an admin logs in or changes products or vendor links.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -5,6 +5,8 @@ import {
   parseStringArray,
   stringifyStringArray,
 } from "@/lib/stringArrays";
+import { getAdminIdentityFromRequest } from "@/lib/adminAuth";
+import { sendAdminAudit } from "@/lib/adminAudit";
 import { NextResponse } from "next/server";
 
 type ProductWithVendors = Prisma.ProductGetPayload<{ include: { vendorLinks: true } }>;
@@ -82,6 +84,13 @@ export async function POST(request: Request) {
         vendorLinks: vendorLinks.length ? { create: vendorLinks } : undefined,
       },
       include: { vendorLinks: true },
+    });
+
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "product_create",
+      actor: identity?.username ?? identity?.source,
+      details: { id: product.id, name: product.name },
     });
 
     return NextResponse.json(hydrateProduct(product), { status: 201 });

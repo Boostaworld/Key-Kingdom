@@ -6,6 +6,8 @@ import {
   stringifyStringArray,
 } from "@/lib/stringArrays";
 import { NextResponse } from "next/server";
+import { getAdminIdentityFromRequest } from "@/lib/adminAuth";
+import { sendAdminAudit } from "@/lib/adminAudit";
 
 async function resolveProductId(
   params: { productId?: string } | Promise<{ productId?: string }> | undefined,
@@ -90,6 +92,13 @@ export async function PUT(
       include: { vendorLinks: true },
     });
 
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "product_update",
+      actor: identity?.username ?? identity?.source,
+      details: { id: product.id, updates: updateData },
+    });
+
     return NextResponse.json(hydrateProduct(product));
   } catch (error) {
     console.error(error);
@@ -108,6 +117,12 @@ export async function DELETE(
 
   try {
     await prisma.product.delete({ where: { id: productId } });
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "product_delete",
+      actor: identity?.username ?? identity?.source,
+      details: { id: productId },
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(error);

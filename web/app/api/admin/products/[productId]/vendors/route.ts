@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { parseStringArray, stringifyStringArray } from "@/lib/stringArrays";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminIdentityFromRequest } from "@/lib/adminAuth";
+import { sendAdminAudit } from "@/lib/adminAudit";
 
 async function resolveProductId(
   params: { productId: string } | Promise<{ productId: string }> | undefined,
@@ -44,6 +46,13 @@ export async function POST(
         avatarUrl: body.avatarUrl ?? null,
         productId,
       },
+    });
+
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "vendor_create",
+      actor: identity?.username ?? identity?.source,
+      details: { productId, id: vendorLink.id, vendorName: vendorLink.vendorName },
     });
 
     return NextResponse.json(
