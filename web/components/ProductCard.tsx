@@ -19,8 +19,8 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <Image
           src={product.iconUrl}
           alt={`${product.name} icon`}
-          width={80}
-          height={80}
+          width={64}
+          height={64}
           className="h-16 w-16 object-contain drop-shadow-[0_0_12px_rgba(50,200,255,0.45)]"
         />
       </div>
