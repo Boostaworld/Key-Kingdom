@@ -31,8 +31,11 @@ export async function loadProducts(): Promise<Product[]> {
     .map((record) => {
       const vendorLinks = record.vendorLinks.map((link) => ({
         ...link,
-        paymentMethods: parseStringArray(link.paymentMethods),
         redirectUrl: link.redirectUrl ?? link.url,
+        notes: link.notes ?? undefined,
+        ctaLabel: link.ctaLabel ?? undefined,
+        avatarUrl: link.avatarUrl ?? undefined,
+        paymentMethods: parseStringArray(link.paymentMethods),
       }));
 
       const lowestPrice = vendorLinks.reduce(
@@ -46,6 +49,9 @@ export async function loadProducts(): Promise<Product[]> {
         vendorLinks,
         features: parseStringArray(record.features),
         tags: parseStringArray(record.tags),
+        heroImageUrl: record.heroImageUrl ?? undefined,
+        tagline: record.tagline ?? undefined,
+        lastUpdated: record.lastUpdated ?? undefined,
         lowestPrice: Number.isFinite(lowestPrice) ? lowestPrice : 0,
         vendorCount: vendorLinks.length,
         sortOrder: record.sortOrder ?? FALLBACK_SORT,
