@@ -31,6 +31,10 @@ When generating UI, CSS, components, code, or text:
 - **TOKENS.css takes priority** for exact values  
 - **COMPONENTS.md governs layout and component usage**  
 - **BRAND_SPEC.md is the master reference for branding decisions**  
+Static assets for the live site are stored in `web/public/`.
+
+- Main logo / profile image: `/key-kingdom-pfp.png`
+- Future favicons / OG images should also live in `web/public/`.
 
 ============================================================
 # 3. CORE BRAND PRINCIPLES (AGENT RULESET)
