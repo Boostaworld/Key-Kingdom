@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     !body?.id ||
     !body.name ||
     !body.slug ||
-    !body.category ||
+    
     !body.iconUrl ||
     !body.description ||
     !Array.isArray(body.features) ||
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         id: String(body.id),
         name: body.name,
         slug: body.slug,
-        category: body.category,
+        
         iconUrl: body.iconUrl,
         heroImageUrl: body.heroImageUrl ?? null,
         tagline: body.tagline ?? null,
