@@ -2,14 +2,16 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
-  },
+ "scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "lint": "eslint",
+  "db:push": "prisma db push",
+  "db:seed": "prisma db seed",
+  "prisma:generate": "prisma generate",
+  "postinstall": "prisma generate"
+},
   "dependencies": {
     "@prisma/client": "5.21.1",
     "next": "16.0.3",
