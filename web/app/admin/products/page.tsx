@@ -36,7 +36,6 @@ export default function AdminProductsPage() {
     id: "",
     name: "",
     slug: "",
-    category: "Executors",
     iconUrl: "",
     description: "",
     isUpdated: true,
