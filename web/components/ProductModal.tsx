@@ -64,7 +64,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   key={vendor.id}
                   href={vendor.url}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="flex items-center justify-between gap-3 rounded-xl bg-[#0A0F14] p-4 ring-1 ring-[#1A1F25] transition hover:border-[#1FB0FF]/60 hover:ring-[#1FB0FF]/60"
                 >
                   <div className="flex items-center gap-3">
