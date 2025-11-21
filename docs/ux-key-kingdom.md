@@ -406,3 +406,5 @@ Desktop (>1200px): 5-column grid, full modal width (720px).
 Tablet (768-1199px): 3-column grid, modal 90% width max 600px.
 Mobile (<768px): 2-column grid, modal 95% width, reduce padding to 24px.
 Stack vendor rows vertically on mobile, reduce font sizes slightly.
+
+
