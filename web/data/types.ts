@@ -34,7 +34,7 @@ export interface Product {
     id: string;
     name: string;
     slug: string;
-    category: "Executors";
+    category: "Executors" | "Bundles" | "Vendors" | "Tools";
     iconUrl: string;
     heroImageUrl?: string;
     tagline?: string;
