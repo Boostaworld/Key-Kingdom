@@ -13,3 +13,10 @@ build/
 # OS crap
 .DS_Store
 Thumbs.db
+
+# Python / bot service
+venv/
+.venv/
+__pycache__/
+.env
+*.log
