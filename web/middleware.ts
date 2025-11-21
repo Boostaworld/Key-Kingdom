@@ -1,53 +1,56 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const REALM = "Key-Kingdom Admin";
-let loggedMissingCredentials = false;
+import {
+  ADMIN_SESSION_COOKIE,
+  getExpectedAdminToken,
+  resolveAdminAuthorization,
+} from "@/lib/adminAuth";
 
-function decodeBasicAuth(header: string): { username: string; password: string } | null {
-  const [scheme, encoded] = header.split(" ");
-  if (scheme?.toLowerCase() !== "basic" || !encoded) return null;
+const LOGIN_PATH = "/admin/login";
 
-  try {
-    const decoded = atob(encoded);
-    const [username, ...rest] = decoded.split(":");
-    const password = rest.join(":");
-    if (!username || password === undefined) return null;
-    return { username, password };
-  } catch (error) {
-    console.error("Failed to decode basic auth header", error);
-    return null;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isLoginRoute = pathname.startsWith(LOGIN_PATH);
+  const isAdminApi = pathname.startsWith("/api/admin");
+
+  const expectedToken = await getExpectedAdminToken();
+  if (!expectedToken) {
+    const message = "Admin credentials are not configured; access is disabled.";
+    return isAdminApi
+      ? NextResponse.json({ error: message }, { status: 503 })
+      : new NextResponse(message, { status: 503 });
   }
-}
 
-function isAuthorized(request: NextRequest) {
-  const header = request.headers.get("authorization");
-  const credentials = header ? decodeBasicAuth(header) : null;
-  const adminUser = process.env.ADMIN_USERNAME;
-  const adminPass = process.env.ADMIN_PASSWORD;
+  const cookieToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const { authorized: isAuthorized } = await resolveAdminAuthorization({
+    cookieValue: cookieToken,
+    authorizationHeader: request.headers.get("authorization"),
+    expectedToken,
+  });
 
-  if (!adminUser || !adminPass) {
-    if (process.env.NODE_ENV === "production" && !loggedMissingCredentials) {
-      console.error("Admin credentials are not configured; access is disabled.");
-      loggedMissingCredentials = true;
+  if (isAuthorized) {
+    if (isLoginRoute) {
+      const redirectUrl = new URL(
+        request.nextUrl.searchParams.get("next") || "/admin/products",
+        request.url,
+      );
+      return NextResponse.redirect(redirectUrl);
     }
-    return false;
-  }
-
-  return credentials?.username === adminUser && credentials.password === adminPass;
-}
-
-export function middleware(request: NextRequest) {
-  if (isAuthorized(request)) {
     return NextResponse.next();
   }
 
-  return new NextResponse("Authentication required", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": `Basic realm=\"${REALM}\"`,
-    },
-  });
+  if (isLoginRoute) {
+    return NextResponse.next();
+  }
+
+  if (isAdminApi) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const loginUrl = new URL(LOGIN_PATH, request.url);
+  loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {

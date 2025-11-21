@@ -5,6 +5,8 @@ import {
   stringifyStringArray,
 } from "@/lib/stringArrays";
 import { NextRequest, NextResponse } from "next/server";
+import { getAdminIdentityFromRequest } from "@/lib/adminAuth";
+import { sendAdminAudit } from "@/lib/adminAudit";
 
 async function resolveParams(
   params:
@@ -57,6 +59,13 @@ export async function PUT(
       data: updateData,
     });
 
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "vendor_update",
+      actor: identity?.username ?? identity?.source,
+      details: { productId: resolved.productId, id: vendorLink.id, updates: updateData },
+    });
+
     return NextResponse.json({
       ...vendorLink,
       paymentMethods: parseStringArray(vendorLink.paymentMethods),
@@ -80,6 +89,12 @@ export async function DELETE(
 
   try {
     await prisma.vendorLink.delete({ where: { id: resolved.vendorId } });
+    const identity = await getAdminIdentityFromRequest(request);
+    await sendAdminAudit({
+      action: "vendor_delete",
+      actor: identity?.username ?? identity?.source,
+      details: { productId: resolved.productId, id: resolved.vendorId },
+    });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(error);
