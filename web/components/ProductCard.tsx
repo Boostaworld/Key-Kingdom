@@ -9,12 +9,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const isOutdated = !product.isUpdated;
-  const statusTitle = product.lastUpdated
-    ? product.isUpdated
+  const statusTitle = product.isUpdated
+    ? product.lastUpdated
       ? `Recently updated — last checked ${product.lastUpdated}`
-      : `Outdated pricing — last updated ${product.lastUpdated}`
-    : product.isUpdated
-      ? "Marked as recently updated"
+      : "Marked as recently updated"
+    : product.lastUpdated
+      ? `Outdated pricing — last updated ${product.lastUpdated}`
       : "Outdated pricing";
 
   return (
