@@ -2,7 +2,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, create your environment file:
+
+```bash
+cp .env.example .env
+# edit ADMIN_USERNAME / ADMIN_PASSWORD and optional webhook or API token values
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
