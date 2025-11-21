@@ -267,7 +267,7 @@ export default function AdminProductsPage() {
               Category
               <select
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                value={newProduct.category ?? ""}
+                value={newProduct}
                 onChange={(event) =>
                   setNewProduct((prev) => ({
                     ...prev,
