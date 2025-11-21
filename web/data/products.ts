@@ -2,11 +2,18 @@
 import type { Product } from "./types";
 
 /**
- * Add or remove products by editing the `productSeeds` array below.
- * Derived values like lowestPrice and vendorCount will be filled in automatically
- * so you only maintain the product facts and links.
+ * Adjust `featuredOrder` to hardcode which products appear first on the front page.
+ * The order is respected by default and also drives the `sortOrder` field that powers
+ * the "Featured" sort option. To add or remove products, edit `productSeeds` below;
+ * derived values like lowestPrice and vendorCount will be filled in automatically.
  */
-type ProductSeed = Omit<Product, "lowestPrice" | "vendorCount">;
+type ProductSeed = Omit<Product, "lowestPrice" | "vendorCount" | "sortOrder">;
+
+const featuredOrder: Product["slug"][] = [
+    "lynx-executor",
+    "assembly-executor",
+    "quantum-injector",
+];
 
 const productSeeds: ProductSeed[] = [
     {
@@ -52,7 +59,6 @@ const productSeeds: ProductSeed[] = [
         ],
         tags: ["executor", "roblox"],
         lastUpdated: "2025-11-15",
-        sortOrder: 1,
     },
     {
         id: "lynx-executor",
@@ -93,7 +99,6 @@ const productSeeds: ProductSeed[] = [
         ],
         tags: ["executor", "recovery", "vault"],
         lastUpdated: "2025-10-02",
-        sortOrder: 0,
     },
     {
         id: "quantum-executor",
@@ -135,9 +140,10 @@ const productSeeds: ProductSeed[] = [
         ],
         tags: ["executor", "performance", "analytics"],
         lastUpdated: "2025-09-12",
-        sortOrder: 2,
     },
 ];
+
+const featuredRank = new Map(featuredOrder.map((slug, index) => [slug, index]));
 
 export const products: Product[] = productSeeds
     .map((seed) => {
@@ -145,6 +151,8 @@ export const products: Product[] = productSeeds
             (price, vendor) => Math.min(price, vendor.price),
             Number.POSITIVE_INFINITY,
         );
+
+        const derivedSortOrder = featuredRank.get(seed.slug);
 
         return {
             ...seed,
@@ -154,6 +162,7 @@ export const products: Product[] = productSeeds
             })),
             lowestPrice: Number.isFinite(lowestPrice) ? lowestPrice : 0,
             vendorCount: seed.vendorLinks.length,
+            sortOrder: derivedSortOrder ?? Number.MAX_SAFE_INTEGER,
         } satisfies Product;
     })
     .sort((a, b) => (a.sortOrder ?? Number.MAX_SAFE_INTEGER) - (b.sortOrder ?? Number.MAX_SAFE_INTEGER));
