@@ -4,6 +4,18 @@ import { parseStringArray } from "@/lib/stringArrays";
 import type { Product } from "./types";
 
 const FALLBACK_SORT = Number.MAX_SAFE_INTEGER;
+const PRODUCT_CATEGORIES: Product["category"][] = [
+  "Executors",
+  "Bundles",
+  "Vendors",
+  "Tools",
+];
+
+function normalizeCategory(category: string): Product["category"] {
+  return PRODUCT_CATEGORIES.includes(category as Product["category"])
+    ? (category as Product["category"])
+    : "Tools";
+}
 
 /**
  * Loads products and vendor links from the persistent store and computes
@@ -19,8 +31,11 @@ export async function loadProducts(): Promise<Product[]> {
     .map((record) => {
       const vendorLinks = record.vendorLinks.map((link) => ({
         ...link,
-        paymentMethods: parseStringArray(link.paymentMethods),
         redirectUrl: link.redirectUrl ?? link.url,
+        notes: link.notes ?? undefined,
+        ctaLabel: link.ctaLabel ?? undefined,
+        avatarUrl: link.avatarUrl ?? undefined,
+        paymentMethods: parseStringArray(link.paymentMethods),
       }));
 
       const lowestPrice = vendorLinks.reduce(
@@ -30,9 +45,13 @@ export async function loadProducts(): Promise<Product[]> {
 
       return {
         ...record,
+        category: normalizeCategory(record.category),
         vendorLinks,
         features: parseStringArray(record.features),
         tags: parseStringArray(record.tags),
+        heroImageUrl: record.heroImageUrl ?? undefined,
+        tagline: record.tagline ?? undefined,
+        lastUpdated: record.lastUpdated ?? undefined,
         lowestPrice: Number.isFinite(lowestPrice) ? lowestPrice : 0,
         vendorCount: vendorLinks.length,
         sortOrder: record.sortOrder ?? FALLBACK_SORT,
