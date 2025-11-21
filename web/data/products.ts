@@ -1,21 +1,11 @@
 // web/data/products.ts
 import { prisma } from "@/lib/prisma";
 import { parseStringArray } from "@/lib/stringArrays";
-import type { Product } from "./types";
+import type { Product, VendorLink } from "./types";
 
 const FALLBACK_SORT = Number.MAX_SAFE_INTEGER;
-const PRODUCT_CATEGORIES: Product["category"][] = [
-  "Executors",
-  "Bundles",
-  "Vendors",
-  "Tools",
-];
 
-function normalizeCategory(category: string): Product["category"] {
-  return PRODUCT_CATEGORIES.includes(category as Product["category"])
-    ? (category as Product["category"])
-    : "Tools";
-}
+// ❌ No more PRODUCT_CATEGORIES or normalizeCategory – you said no categories.
 
 /**
  * Loads products and vendor links from the persistent store and computes
@@ -29,13 +19,19 @@ export async function loadProducts(): Promise<Product[]> {
 
   return records
     .map((record) => {
-      const vendorLinks = record.vendorLinks.map((link) => ({
-        ...link,
+      // Make sure vendorLinks conform to VendorLink
+      const vendorLinks: VendorLink[] = record.vendorLinks.map((link) => ({
+        id: link.id,
+        vendorName: link.vendorName,
+        url: link.url,
         redirectUrl: link.redirectUrl ?? link.url,
+        price: link.price,
+        currency: link.currency,
+        // parseStringArray returns string[], which is now PaymentMethod[] because PaymentMethod = string
+        paymentMethods: parseStringArray(link.paymentMethods),
         notes: link.notes ?? undefined,
         ctaLabel: link.ctaLabel ?? undefined,
         avatarUrl: link.avatarUrl ?? undefined,
-        paymentMethods: parseStringArray(link.paymentMethods),
       }));
 
       const lowestPrice = vendorLinks.reduce(
@@ -43,19 +39,25 @@ export async function loadProducts(): Promise<Product[]> {
         Number.POSITIVE_INFINITY,
       );
 
-      return {
-        ...record,
-        category: normalizeCategory(record.category),
-        vendorLinks,
-        features: parseStringArray(record.features),
-        tags: parseStringArray(record.tags),
+      const product: Product = {
+        id: record.id,
+        name: record.name,
+        slug: record.slug,
+        iconUrl: record.iconUrl,
         heroImageUrl: record.heroImageUrl ?? undefined,
         tagline: record.tagline ?? undefined,
-        lastUpdated: record.lastUpdated ?? undefined,
+        description: record.description,
+        features: parseStringArray(record.features),
+        sortOrder: record.sortOrder ?? FALLBACK_SORT,
+        isUpdated: record.isUpdated, // assuming this exists in your prisma model
+        vendorLinks,
         lowestPrice: Number.isFinite(lowestPrice) ? lowestPrice : 0,
         vendorCount: vendorLinks.length,
-        sortOrder: record.sortOrder ?? FALLBACK_SORT,
-      } satisfies Product;
+        tags: parseStringArray(record.tags),
+        lastUpdated: record.lastUpdated ?? undefined,
+      };
+
+      return product;
     })
     .sort(
       (a, b) => (a.sortOrder ?? FALLBACK_SORT) - (b.sortOrder ?? FALLBACK_SORT),
