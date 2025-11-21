@@ -126,7 +126,6 @@ export default function AdminProductsPage() {
         id: "",
         name: "",
         slug: "",
-        category: "Executors",
         iconUrl: "",
         description: "",
         isUpdated: true,
@@ -144,7 +143,6 @@ export default function AdminProductsPage() {
     const payload = {
       name: product.name,
       slug: product.slug,
-      category: product.category,
       iconUrl: product.iconUrl,
       heroImageUrl: product.heroImageUrl,
       tagline: product.tagline,
