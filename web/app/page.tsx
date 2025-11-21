@@ -28,7 +28,7 @@ export default function Home() {
 
       return matchesCategory && matchesQuery;
     });
-  }, [activeCategory, searchQuery]);
+  }, [searchQuery]);
 
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];
