@@ -8,16 +8,7 @@ import { SearchBar, type SortOption } from "@/components/SearchBar";
 import { products } from "@/data/products";
 import type { Product } from "@/data/types";
 
-const categories: (Product["category"] | "All")[] = [
-  "All",
-  "Executors",
-  "Scripts",
-  "Tools",
-  "Misc",
-];
-
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState<Product["category"] | "All">("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOption, setSortOption] = useState<SortOption>("featured");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -79,7 +70,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#03060A] text-white">
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:py-16">
+      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8 md:gap-9 md:py-10">
         <Hero />
         <SearchBar
           activeCategory={activeCategory}
