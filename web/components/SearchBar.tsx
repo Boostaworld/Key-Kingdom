@@ -1,53 +1,48 @@
 "use client";
 
-import type { Product } from "@/data/types";
+import { ChangeEvent } from "react";
 
-interface SearchBarProps {
-  activeCategory: Product["category"] | "All";
-  categories: (Product["category"] | "All")[];
-  searchQuery: string;
-  onCategoryChange: (category: Product["category"] | "All") => void;
-  onSearchChange: (query: string) => void;
-}
+type SearchBarProps = {
+  value: string;
+  onChange: (value: string) => void;
+};
 
-export function SearchBar({
-  activeCategory,
-  categories,
-  searchQuery,
-  onCategoryChange,
-  onSearchChange,
-}: SearchBarProps) {
+export function SearchBar({ value, onChange }: SearchBarProps) {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange(event.target.value);
+  };
+
   return (
-    <section className="flex flex-col gap-6 rounded-2xl border border-[#1A1F25] bg-[#0A0F14] p-6 shadow-[0_0_40px_rgba(31,176,255,0.18)]">
-      <div className="flex flex-wrap gap-3">
-        {categories.map((category) => {
-          const isActive = category === activeCategory;
-          return (
-            <button
-              key={category}
-              type="button"
-              onClick={() => onCategoryChange(category)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-[#1FB0FF] focus:ring-offset-2 focus:ring-offset-[#03060A] ${
-                isActive
-                  ? "bg-[#1FB0FF] text-black shadow-[0_0_24px_rgba(31,176,255,0.55)]"
-                  : "bg-[#0F141A] text-zinc-200 ring-1 ring-[#1A1F25] hover:ring-[#1FB0FF]/60"
-              }`}
-            >
-              {category}
-            </button>
-          );
-        })}
-      </div>
-      <label className="relative block">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-zinc-400">Search</span>
-        <input
-          value={searchQuery}
-          onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Find a product by name or tag"
-          className="w-full rounded-xl bg-[#0F141A] py-4 pl-20 pr-4 text-base text-white outline-none ring-1 ring-[#1A1F25] transition focus:ring-2 focus:ring-[#1FB0FF]"
-          type="search"
+    <div className="mx-auto mb-10 flex w-full max-w-3xl items-center gap-3 rounded-[12px] border border-[#1F2933] bg-[#111827] px-4 py-3 text-left shadow-[0_0_12px_rgba(20,165,255,0.12)] focus-within:border-[#14A5FF] focus-within:shadow-[0_0_10px_rgba(20,165,255,0.35)]">
+      <svg
+        className="h-5 w-5 flex-shrink-0 text-[#9CA3AF]"
+        viewBox="0 0 20 20"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path
+          d="M14.875 14.875L18 18"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
-      </label>
-    </section>
+        <path
+          d="M15.5 9.25C15.5 12.9779 12.4779 16 8.75 16C5.02208 16 2 12.9779 2 9.25C2 5.52208 5.02208 2.5 8.75 2.5C12.4779 2.5 15.5 5.52208 15.5 9.25Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <input
+        type="text"
+        value={value}
+        onChange={handleChange}
+        placeholder="Search products..."
+        className="w-full bg-transparent text-base text-[#D0D5DD] placeholder:text-[#9CA3AF] focus:outline-none"
+      />
+    </div>
   );
 }
