@@ -1,14 +1,20 @@
 :root {
-  /* Colors */
-  --sl-primary: #1FB0FF;
-  --sl-primary-inner: #12A0F9;
-  --sl-primary-outer: #5FD8FF;
-  --sl-primary-halo: #66E1FF;
+  /* Backgrounds */
+  --kk-bg: #03060A;
+  --kk-bg-card: #111827;
+  --kk-border-subtle: #1F2933;
 
-  --sl-bg: #03060A;
-  --sl-gray-1: #1A1F25;
-  --sl-gray-2: #2A323A;
-  --sl-text: #FFFFFF;
+  /* Accent / Glow */
+  --kk-accent: #14A5FF;        /* main neon blue */
+  --kk-accent-inner: #32C8FF;  /* inner glow */
+  --kk-accent-outer: #5FD8FF;  /* mid glow */
+  --kk-accent-halo: #66E1FF;   /* halo glow, use with opacity */
+
+  /* Text */
+  --kk-text-main: #FFFFFF;
+  --kk-text-secondary: #D0D5DD;
+  --kk-text-muted: #9CA3AF;
+}
 
   /* Typography */
   --sl-font-display: "Eurostile Next", "Orbitron", system-ui, sans-serif;
@@ -30,3 +36,4 @@
   --sl-shadow-soft: 0 0 8px rgba(31, 176, 255, 0.10);
   --sl-shadow-strong: 0 0 25px rgba(31, 176, 255, 0.25);
 }
+
