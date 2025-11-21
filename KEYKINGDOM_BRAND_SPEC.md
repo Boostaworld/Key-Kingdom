@@ -16,6 +16,18 @@ Key-Kingdom is a neon-tech digital brand focused on:
 Core symbol: an abstract glowing node cluster.  
 Aesthetic: neon cyan + deep black, smooth, futuristic, network-like.
 
+## Color Palette
+
+- Background: `#03060A` (`--kk-bg`)
+- Card Background: `#111827` (`--kk-bg-card`)
+- Primary Neon Blue: `#14A5FF` (`--kk-accent`)
+- Inner Glow: `#32C8FF` (`--kk-accent-inner`)
+- Outer Glow: `#5FD8FF` (`--kk-accent-outer`)
+- Halo Glow: `#66E1FF` (`--kk-accent-halo`)
+- Text Main: `#FFFFFF` (`--kk-text-main`)
+- Text Secondary: `#D0D5DD` (`--kk-text-secondary`)
+- Text Muted: `#9CA3AF` (`--kk-text-muted`)
+
 ============================================================
 # 2. LOGO SYSTEM
 
