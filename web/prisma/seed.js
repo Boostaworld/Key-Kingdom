@@ -10,7 +10,6 @@ const products = [
     id: "assembly-executor",
     name: "Assembly",
     slug: "assembly-executor",
-    category: "Executors",
     iconUrl: "/products/assembly.png",
     heroImageUrl: "/products/assembly-hero.png",
     tagline: "Lightweight Roblox executor with fast injection.",
@@ -146,7 +145,7 @@ async function seed() {
       update: {
         name: product.name,
         slug: product.slug,
-        category: product.category,
+    
         iconUrl: product.iconUrl,
         heroImageUrl: product.heroImageUrl,
         tagline: product.tagline,
@@ -167,7 +166,7 @@ async function seed() {
         id: product.id,
         name: product.name,
         slug: product.slug,
-        category: product.category,
+        
         iconUrl: product.iconUrl,
         heroImageUrl: product.heroImageUrl,
         tagline: product.tagline,
