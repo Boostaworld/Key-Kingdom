@@ -34,9 +34,12 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               />
             </div>
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.24em] text-[#1FB0FF]">{product.category}</p>
+              {/* category removed */}
               <h2 className="text-3xl font-semibold text-white">{product.name}</h2>
-              <p className="leading-relaxed text-zinc-300" data-testid="product-description">
+              <p
+                className="leading-relaxed text-zinc-300"
+                data-testid="product-description"
+              >
                 {product.description}
               </p>
             </div>
@@ -55,7 +58,9 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
           <div className="w-full max-w-sm space-y-4 rounded-2xl bg-[#0F141A] p-5 ring-1 ring-[#1A1F25]">
             <div className="flex items-baseline justify-between">
-              <p className="text-sm uppercase tracking-[0.2em] text-[#1FB0FF]">Vendors</p>
+              <p className="text-sm uppercase tracking-[0.2em] text-[#1FB0FF]">
+                Vendors
+              </p>
               <span className="rounded-full bg-[#0A0F14] px-3 py-1 text-xs font-semibold text-white ring-1 ring-[#1A1F25]">
                 {product.vendorCount} options
               </span>
@@ -85,8 +90,12 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{vendor.vendorName}</p>
-                      <p className="text-xs text-zinc-400">{vendor.notes ?? "Secure checkout"}</p>
+                      <p className="text-sm font-semibold text-white">
+                        {vendor.vendorName}
+                      </p>
+                      <p className="text-xs text-zinc-400">
+                        {vendor.notes ?? "Secure checkout"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-right">
