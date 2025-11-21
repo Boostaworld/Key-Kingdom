@@ -14,22 +14,18 @@ model Product {
   id          String       @id
   name        String
   slug        String       @unique
-  category    String
+  // category field removed
   iconUrl     String
   heroImageUrl String?
   tagline     String?
   description String
   features    String
   sortOrder   Int?
-  isUpdated   Boolean
-  tags        String
+  isUpdated   Boolean      @default(true)
+  tags        String?
   lastUpdated String?
-
   vendorLinks VendorLink[]
-
-  @@index([slug])
 }
-
 model VendorLink {
   id             String   @id
   vendorName     String
