@@ -222,6 +222,10 @@ Copy code
 
 diff
 Copy code
+## Assets
+
+- Primary mark / profile image: `web/public/key-kingdom-pfp.png`
+- Usage: hero avatar, small logo, social media avatar.
 
 ============================================================
 # 12. BRAND ASSETS INCLUDED
