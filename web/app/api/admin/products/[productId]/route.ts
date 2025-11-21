@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   normalizeStringArray,
@@ -34,6 +34,18 @@ function hydrateProduct(record: ProductWithVendors) {
   };
 }
 
+function normalizeOptionalString(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : null;
+}
+
+function normalizeOptionalNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { productId: string } | Promise<{ productId: string }> },
@@ -67,23 +79,35 @@ export async function PUT(
   const body = await request.json();
   const updateData: Record<string, unknown> = {};
 
-  if (body.name) updateData.name = body.name;
-  if (body.slug) updateData.slug = body.slug;
-  if (body.category) updateData.category = body.category;
-  if (body.iconUrl) updateData.iconUrl = body.iconUrl;
-  if (body.heroImageUrl !== undefined) updateData.heroImageUrl = body.heroImageUrl;
-  if (body.tagline !== undefined) updateData.tagline = body.tagline;
-  if (body.description) updateData.description = body.description;
-  if (body.sortOrder !== undefined) updateData.sortOrder = body.sortOrder;
-  if (body.isUpdated !== undefined) updateData.isUpdated = body.isUpdated;
-  if (body.lastUpdated !== undefined) updateData.lastUpdated = body.lastUpdated;
+  if ("name" in body && typeof body.name === "string")
+    updateData.name = body.name.trim();
+  if ("slug" in body && typeof body.slug === "string")
+    updateData.slug = body.slug.trim();
+  if ("iconUrl" in body && typeof body.iconUrl === "string")
+    updateData.iconUrl = body.iconUrl.trim();
+  if ("heroImageUrl" in body)
+    updateData.heroImageUrl = normalizeOptionalString(body.heroImageUrl);
+  if ("tagline" in body) updateData.tagline = normalizeOptionalString(body.tagline);
+  if ("description" in body && typeof body.description === "string")
+    updateData.description = body.description.trim();
+  if ("sortOrder" in body) updateData.sortOrder = normalizeOptionalNumber(body.sortOrder);
+  if ("isUpdated" in body) updateData.isUpdated = Boolean(body.isUpdated);
+  if ("lastUpdated" in body)
+    updateData.lastUpdated = normalizeOptionalString(body.lastUpdated);
 
-  if (body.features)
+  if ("features" in body)
     updateData.features = stringifyStringArray(
       normalizeStringArray(body.features),
     );
-  if (body.tags)
+  if ("tags" in body)
     updateData.tags = stringifyStringArray(normalizeStringArray(body.tags));
+
+  if (!Object.keys(updateData).length) {
+    return NextResponse.json(
+      { error: "No product fields provided for update" },
+      { status: 400 },
+    );
+  }
 
   try {
     const product = await prisma.product.update({
@@ -102,6 +126,12 @@ export async function PUT(
     return NextResponse.json(hydrateProduct(product));
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Product id or slug already exists" },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: "Unable to update product" }, { status: 500 });
   }
 }
