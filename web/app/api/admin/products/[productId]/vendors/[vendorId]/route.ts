@@ -4,12 +4,40 @@ import {
   parseStringArray,
   stringifyStringArray,
 } from "@/lib/stringArrays";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+async function resolveParams(
+  params:
+    | { productId: string; vendorId: string }
+    | Promise<{ productId: string; vendorId: string }>
+    | undefined,
+  request: Request,
+) {
+  const resolved = typeof (params as Promise<{ productId: string; vendorId: string }>)?.then ===
+    "function"
+    ? await (params as Promise<{ productId: string; vendorId: string }>)
+    : params;
+
+  if (resolved?.productId && resolved?.vendorId) return resolved;
+
+  const segments = new URL(request.url).pathname.split("/").filter(Boolean);
+  const vendorId = segments.pop();
+  const productId = segments.pop();
+
+  return { productId: productId ?? "", vendorId: vendorId ?? "" };
+}
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { productId: string; vendorId: string } },
+  request: NextRequest,
+  {
+    params,
+  }: { params: { productId: string; vendorId: string } | Promise<{ productId: string; vendorId: string }> },
 ) {
+  const resolved = await resolveParams(params, request);
+  if (!resolved.productId || !resolved.vendorId) {
+    return NextResponse.json({ error: "Product id and vendor id are required" }, { status: 400 });
+  }
+
   const body = await request.json();
   const updateData: Record<string, unknown> = {};
 
@@ -28,7 +56,7 @@ export async function PUT(
 
   try {
     const vendorLink = await prisma.vendorLink.update({
-      where: { id: params.vendorId },
+      where: { id: resolved.vendorId },
       data: updateData,
     });
 
@@ -43,11 +71,18 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: Request,
-  { params }: { params: { vendorId: string } },
+  request: NextRequest,
+  {
+    params,
+  }: { params: { productId: string; vendorId: string } | Promise<{ productId: string; vendorId: string }> },
 ) {
+  const resolved = await resolveParams(params, request);
+  if (!resolved.productId || !resolved.vendorId) {
+    return NextResponse.json({ error: "Product id and vendor id are required" }, { status: 400 });
+  }
+
   try {
-    await prisma.vendorLink.delete({ where: { id: params.vendorId } });
+    await prisma.vendorLink.delete({ where: { id: resolved.vendorId } });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error(error);

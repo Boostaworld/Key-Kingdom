@@ -1,11 +1,30 @@
 import { prisma } from "@/lib/prisma";
 import { parseStringArray, stringifyStringArray } from "@/lib/stringArrays";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+
+async function resolveProductId(
+  params: { productId: string } | Promise<{ productId: string }> | undefined,
+  request: Request,
+) {
+  const resolved = typeof (params as Promise<{ productId: string }>)?.then === "function"
+    ? await (params as Promise<{ productId: string }>)
+    : params;
+
+  if (resolved?.productId) return resolved.productId;
+
+  const segments = new URL(request.url).pathname.split("/").filter(Boolean);
+  return segments[segments.length - 1] ?? "";
+}
 
 export async function POST(
-  request: Request,
-  { params }: { params: { productId: string } },
+  request: NextRequest,
+  { params }: { params: { productId: string } | Promise<{ productId: string }> },
 ) {
+  const productId = await resolveProductId(params, request);
+  if (!productId) {
+    return NextResponse.json({ error: "Product id is required" }, { status: 400 });
+  }
+
   const body = await request.json();
 
   if (!body?.id || !body.vendorName || !body.url || body.price === undefined || !body.currency) {
@@ -25,7 +44,7 @@ export async function POST(
         notes: body.notes ?? null,
         ctaLabel: body.ctaLabel ?? null,
         avatarUrl: body.avatarUrl ?? null,
-        productId: params.productId,
+        productId,
       },
     });
 
