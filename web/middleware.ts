@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const REALM = "Key-Kingdom Admin";
+let loggedMissingCredentials = false;
 
 function decodeBasicAuth(header: string): { username: string; password: string } | null {
   const [scheme, encoded] = header.split(" ");
@@ -22,8 +23,16 @@ function decodeBasicAuth(header: string): { username: string; password: string }
 function isAuthorized(request: NextRequest) {
   const header = request.headers.get("authorization");
   const credentials = header ? decodeBasicAuth(header) : null;
-  const adminUser = process.env.ADMIN_USERNAME ?? "admin";
-  const adminPass = process.env.ADMIN_PASSWORD ?? "change-me";
+  const adminUser = process.env.ADMIN_USERNAME;
+  const adminPass = process.env.ADMIN_PASSWORD;
+
+  if (!adminUser || !adminPass) {
+    if (process.env.NODE_ENV === "production" && !loggedMissingCredentials) {
+      console.error("Admin credentials are not configured; access is disabled.");
+      loggedMissingCredentials = true;
+    }
+    return false;
+  }
 
   return credentials?.username === adminUser && credentials.password === adminPass;
 }

@@ -168,6 +168,11 @@ export default function AdminProductsPage() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product?",
+    );
+    if (!confirmed) return;
+
     setSaving(true);
     await fetch(`/api/admin/products/${productId}`, { method: "DELETE" });
     await fetchProducts();
@@ -189,6 +194,11 @@ export default function AdminProductsPage() {
   };
 
   const handleDeleteVendor = async (productId: string, vendorId: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this vendor?",
+    );
+    if (!confirmed) return;
+
     setSaving(true);
     await fetch(`/api/admin/products/${productId}/vendors/${vendorId}`, { method: "DELETE" });
     await fetchProducts();
