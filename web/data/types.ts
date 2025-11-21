@@ -49,5 +49,4 @@ export interface Product {
 
     tags?: string[];
     lastUpdated?: string;
-    isUpdated: boolean;
 }
