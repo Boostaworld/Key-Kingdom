@@ -8,7 +8,6 @@ import type { Product, VendorLink } from "@/data/types";
 const FALLBACK_SORT = Number.MAX_SAFE_INTEGER;
 
 type AdminProduct = Omit<Product, "lowestPrice" | "vendorCount">;
-
 type VendorDraft = Partial<VendorLink>;
 
 type NewProductDraft = Partial<AdminProduct> & {
@@ -41,6 +40,10 @@ export default function AdminProductsPage() {
     isUpdated: true,
     featuresText: "",
     tagsText: "",
+    heroImageUrl: "",
+    tagline: "",
+    sortOrder: undefined,
+    lastUpdated: "",
   });
   const [newVendors, setNewVendors] = useState<Record<string, VendorDraft>>({});
 
@@ -66,7 +69,11 @@ export default function AdminProductsPage() {
     void fetchProducts();
   }, [fetchProducts]);
 
-  const updateProductField = (productId: string, key: keyof AdminProduct, value: unknown) => {
+  const updateProductField = (
+    productId: string,
+    key: keyof AdminProduct,
+    value: unknown,
+  ) => {
     setProducts((current) =>
       current.map((product) =>
         product.id === productId ? { ...product, [key]: value } : product,
@@ -94,14 +101,20 @@ export default function AdminProductsPage() {
     );
   };
 
-  const updateNewVendorField = (productId: string, key: keyof VendorLink, value: unknown) => {
+  const updateNewVendorField = (
+    productId: string,
+    key: keyof VendorLink,
+    value: unknown,
+  ) => {
     setNewVendors((current) => ({
       ...current,
       [productId]: { ...current[productId], [key]: value },
     }));
   };
 
-  const handleCreateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleCreateProduct = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
     setSaving(true);
 
@@ -131,6 +144,10 @@ export default function AdminProductsPage() {
         isUpdated: true,
         featuresText: "",
         tagsText: "",
+        heroImageUrl: "",
+        tagline: "",
+        sortOrder: undefined,
+        lastUpdated: "",
       });
       await fetchProducts();
     }
@@ -176,10 +193,7 @@ export default function AdminProductsPage() {
     setSaving(false);
   };
 
-  const handleSaveVendor = async (
-    productId: string,
-    vendor: VendorLink,
-  ) => {
+  const handleSaveVendor = async (productId: string, vendor: VendorLink) => {
     setSaving(true);
     await fetch(`/api/admin/products/${productId}/vendors/${vendor.id}`, {
       method: "PUT",
@@ -197,14 +211,17 @@ export default function AdminProductsPage() {
     if (!confirmed) return;
 
     setSaving(true);
-    await fetch(`/api/admin/products/${productId}/vendors/${vendorId}`, { method: "DELETE" });
+    await fetch(`/api/admin/products/${productId}/vendors/${vendorId}`, {
+      method: "DELETE",
+    });
     await fetchProducts();
     setSaving(false);
   };
 
   const handleAddVendor = async (productId: string) => {
     const draft = newVendors[productId];
-    if (!draft?.id || !draft.vendorName || !draft.url || draft.price === undefined) return;
+    if (!draft?.id || !draft.vendorName || !draft.url || draft.price === undefined)
+      return;
 
     setSaving(true);
     await fetch(`/api/admin/products/${productId}/vendors`, {
@@ -227,21 +244,28 @@ export default function AdminProductsPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
         <header className="flex flex-col gap-2">
           <p className="text-sm uppercase tracking-wide text-[#1FB0FF]">Admin</p>
-          <h1 className="text-3xl font-semibold">Products & Vendors</h1>
+          <h1 className="text-3xl font-semibold">Products &amp; Vendors</h1>
           <p className="text-sm text-[#9CA3AF]">
-            Manage product metadata, vendor links, and ordering. This area is protected via admin authentication.
+            Manage product metadata, vendor links, and ordering. This area is
+            protected via admin authentication.
           </p>
         </header>
 
+        {/* Add product */}
         <section className="rounded-xl border border-[#1F2933] bg-[#0A0F14] p-6 shadow-[0_0_18px_rgba(31,176,255,0.14)]">
           <h2 className="text-xl font-semibold text-[#1FB0FF]">Add product</h2>
-          <form onSubmit={handleCreateProduct} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <form
+            onSubmit={handleCreateProduct}
+            className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
+          >
             <label className="flex flex-col gap-1 text-sm">
               ID
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.id ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, id: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({ ...prev, id: event.target.value }))
+                }
                 required
               />
             </label>
@@ -250,7 +274,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.name ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, name: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    name: event.target.value,
+                  }))
+                }
                 required
               />
             </label>
@@ -259,35 +288,26 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.slug ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, slug: event.target.value }))}
-                required
-              />
-            </label>
-            <label className="flex flex-col gap-1 text-sm">
-              Category
-              <select
-                className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                value={newProduct}
                 onChange={(event) =>
                   setNewProduct((prev) => ({
                     ...prev,
-                    category: event.target.value as Product["category"],
+                    slug: event.target.value,
                   }))
                 }
                 required
-              >
-                <option value="Executors">Executors</option>
-                <option value="Bundles">Bundles</option>
-                <option value="Vendors">Vendors</option>
-                <option value="Tools">Tools</option>
-              </select>
+              />
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Icon URL
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.iconUrl ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, iconUrl: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    iconUrl: event.target.value,
+                  }))
+                }
                 required
               />
             </label>
@@ -296,7 +316,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.heroImageUrl ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, heroImageUrl: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    heroImageUrl: event.target.value,
+                  }))
+                }
               />
             </label>
             <label className="flex flex-col gap-1 text-sm md:col-span-2">
@@ -304,7 +329,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.tagline ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, tagline: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    tagline: event.target.value,
+                  }))
+                }
               />
             </label>
             <label className="flex flex-col gap-1 text-sm md:col-span-2">
@@ -312,7 +342,12 @@ export default function AdminProductsPage() {
               <textarea
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.description ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, description: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
+                }
                 required
               />
             </label>
@@ -321,7 +356,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.featuresText ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, featuresText: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    featuresText: event.target.value,
+                  }))
+                }
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
@@ -329,7 +369,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.tagsText ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, tagsText: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    tagsText: event.target.value,
+                  }))
+                }
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
@@ -339,7 +384,13 @@ export default function AdminProductsPage() {
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.sortOrder ?? ""}
                 onChange={(event) =>
-                  setNewProduct((prev) => ({ ...prev, sortOrder: Number(event.target.value) }))
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    sortOrder:
+                      event.target.value === ""
+                        ? undefined
+                        : Number(event.target.value),
+                  }))
                 }
               />
             </label>
@@ -347,7 +398,12 @@ export default function AdminProductsPage() {
               <input
                 type="checkbox"
                 checked={newProduct.isUpdated ?? false}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, isUpdated: event.target.checked }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    isUpdated: event.target.checked,
+                  }))
+                }
               />
               Is updated
             </label>
@@ -356,7 +412,12 @@ export default function AdminProductsPage() {
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.lastUpdated ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, lastUpdated: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    lastUpdated: event.target.value,
+                  }))
+                }
               />
             </label>
             <div className="md:col-span-2">
@@ -371,16 +432,23 @@ export default function AdminProductsPage() {
           </form>
         </section>
 
+        {/* Existing products */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-[#1FB0FF]">Existing products</h2>
-            {loading && <span className="text-sm text-[#9CA3AF]">Loading...</span>}
+            <h2 className="text-xl font-semibold text-[#1FB0FF]">
+              Existing products
+            </h2>
+            {loading && (
+              <span className="text-sm text-[#9CA3AF]">Loading...</span>
+            )}
           </div>
           <div className="flex flex-col gap-4">
             {products
               .slice()
               .sort(
-                (a, b) => (a.sortOrder ?? FALLBACK_SORT) - (b.sortOrder ?? FALLBACK_SORT),
+                (a, b) =>
+                  (a.sortOrder ?? FALLBACK_SORT) -
+                  (b.sortOrder ?? FALLBACK_SORT),
               )
               .map((product) => (
                 <div
@@ -389,8 +457,9 @@ export default function AdminProductsPage() {
                 >
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm uppercase tracking-wide text-[#1FB0FF]">{product.category}</p>
-                      <h3 className="text-2xl font-semibold">{product.name}</h3>
+                      <h3 className="text-2xl font-semibold">
+                        {product.name}
+                      </h3>
                       <p className="text-xs text-[#9CA3AF]">{product.slug}</p>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-[#9CA3AF]">
@@ -413,7 +482,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.name}
-                        onChange={(event) => updateProductField(product.id, "name", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "name",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -421,7 +496,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.slug}
-                        onChange={(event) => updateProductField(product.id, "slug", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "slug",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -429,7 +510,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.iconUrl}
-                        onChange={(event) => updateProductField(product.id, "iconUrl", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "iconUrl",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -437,7 +524,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.heroImageUrl ?? ""}
-                        onChange={(event) => updateProductField(product.id, "heroImageUrl", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "heroImageUrl",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -445,7 +538,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.tagline ?? ""}
-                        onChange={(event) => updateProductField(product.id, "tagline", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "tagline",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -455,7 +554,11 @@ export default function AdminProductsPage() {
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.sortOrder ?? ""}
                         onChange={(event) =>
-                          updateProductField(product.id, "sortOrder", Number(event.target.value))
+                          updateProductField(
+                            product.id,
+                            "sortOrder",
+                            Number(event.target.value),
+                          )
                         }
                       />
                     </label>
@@ -464,7 +567,13 @@ export default function AdminProductsPage() {
                       <textarea
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.description}
-                        onChange={(event) => updateProductField(product.id, "description", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "description",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                     <label className="flex flex-col gap-1 text-sm">
@@ -473,7 +582,11 @@ export default function AdminProductsPage() {
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={toCommaSeparated(product.features)}
                         onChange={(event) =>
-                          updateProductField(product.id, "features", parseCommaSeparated(event.target.value))
+                          updateProductField(
+                            product.id,
+                            "features",
+                            parseCommaSeparated(event.target.value),
+                          )
                         }
                       />
                     </label>
@@ -483,7 +596,11 @@ export default function AdminProductsPage() {
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={toCommaSeparated(product.tags ?? [])}
                         onChange={(event) =>
-                          updateProductField(product.id, "tags", parseCommaSeparated(event.target.value))
+                          updateProductField(
+                            product.id,
+                            "tags",
+                            parseCommaSeparated(event.target.value),
+                          )
                         }
                       />
                     </label>
@@ -491,7 +608,13 @@ export default function AdminProductsPage() {
                       <input
                         type="checkbox"
                         checked={product.isUpdated}
-                        onChange={(event) => updateProductField(product.id, "isUpdated", event.target.checked)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "isUpdated",
+                            event.target.checked,
+                          )
+                        }
                       />
                       Is updated
                     </label>
@@ -500,7 +623,13 @@ export default function AdminProductsPage() {
                       <input
                         className="rounded border border-[#1F2933] bg-[#050709] p-2"
                         value={product.lastUpdated ?? ""}
-                        onChange={(event) => updateProductField(product.id, "lastUpdated", event.target.value)}
+                        onChange={(event) =>
+                          updateProductField(
+                            product.id,
+                            "lastUpdated",
+                            event.target.value,
+                          )
+                        }
                       />
                     </label>
                   </div>
@@ -515,10 +644,15 @@ export default function AdminProductsPage() {
                     </button>
                   </div>
 
+                  {/* Vendor links */}
                   <div className="mt-6 flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-semibold text-[#1FB0FF]">Vendor links</h4>
-                      <span className="text-xs text-[#9CA3AF]">{product.vendorLinks.length} entries</span>
+                      <h4 className="text-lg font-semibold text-[#1FB0FF]">
+                        Vendor links
+                      </h4>
+                      <span className="text-xs text-[#9CA3AF]">
+                        {product.vendorLinks.length} entries
+                      </span>
                     </div>
 
                     {product.vendorLinks.map((vendor) => (
@@ -533,7 +667,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.vendorName}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "vendorName", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "vendorName",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -560,7 +699,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.url}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "url", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "url",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -570,7 +714,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.redirectUrl ?? ""}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "redirectUrl", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "redirectUrl",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -580,7 +729,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.currency}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "currency", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "currency",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -588,7 +742,9 @@ export default function AdminProductsPage() {
                             Payment methods
                             <input
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
-                              value={toCommaSeparated(vendor.paymentMethods)}
+                              value={toCommaSeparated(
+                                vendor.paymentMethods as string[],
+                              )}
                               onChange={(event) =>
                                 updateVendorField(
                                   product.id,
@@ -605,7 +761,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.ctaLabel ?? ""}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "ctaLabel", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "ctaLabel",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -615,7 +776,12 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.avatarUrl ?? ""}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "avatarUrl", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "avatarUrl",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
@@ -625,14 +791,19 @@ export default function AdminProductsPage() {
                               className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                               value={vendor.notes ?? ""}
                               onChange={(event) =>
-                                updateVendorField(product.id, vendor.id, "notes", event.target.value)
+                                updateVendorField(
+                                  product.id,
+                                  vendor.id,
+                                  "notes",
+                                  event.target.value,
+                                )
                               }
                             />
                           </label>
                         </div>
                         <div className="mt-3 flex items-center justify-between">
                           <button
-                            className="rounded bg-[#12A0F9] px-3 py-2 text-sm font-semibold text-black shadow-[0_0_16px_rgba(31,176,255,0.45)]"
+                            className="rounded bg-[#12A0F9] px-3 py-2 text-sm font-semibold textblack shadow-[0_0_16px_rgba(31,176,255,0.45)]"
                             onClick={() => handleSaveVendor(product.id, vendor)}
                             disabled={saving}
                           >
@@ -640,7 +811,9 @@ export default function AdminProductsPage() {
                           </button>
                           <button
                             className="text-sm text-[#FF6B6B]"
-                            onClick={() => handleDeleteVendor(product.id, vendor.id)}
+                            onClick={() =>
+                              handleDeleteVendor(product.id, vendor.id)
+                            }
                             disabled={saving}
                           >
                             Remove
@@ -649,15 +822,22 @@ export default function AdminProductsPage() {
                       </div>
                     ))}
 
+                    {/* Add vendor form */}
                     <div className="rounded-lg border border-dashed border-[#1F2933] bg-[#050709] p-4">
-                      <h5 className="text-sm font-semibold text-[#1FB0FF]">Add vendor link</h5>
+                      <h5 className="text-sm font-semibold text-[#1FB0FF]">
+                        Add vendor link
+                      </h5>
                       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
                         <input
                           className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                           placeholder="ID"
                           value={newVendors[product.id]?.id ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "id", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "id",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
@@ -665,7 +845,11 @@ export default function AdminProductsPage() {
                           placeholder="Vendor name"
                           value={newVendors[product.id]?.vendorName ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "vendorName", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "vendorName",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
@@ -673,7 +857,11 @@ export default function AdminProductsPage() {
                           placeholder="URL"
                           value={newVendors[product.id]?.url ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "url", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "url",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
@@ -681,7 +869,11 @@ export default function AdminProductsPage() {
                           placeholder="Redirect URL"
                           value={newVendors[product.id]?.redirectUrl ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "redirectUrl", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "redirectUrl",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
@@ -691,7 +883,11 @@ export default function AdminProductsPage() {
                           placeholder="Price"
                           value={newVendors[product.id]?.price ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "price", Number(event.target.value))
+                            updateNewVendorField(
+                              product.id,
+                              "price",
+                              Number(event.target.value),
+                            )
                           }
                         />
                         <input
@@ -699,13 +895,20 @@ export default function AdminProductsPage() {
                           placeholder="Currency"
                           value={newVendors[product.id]?.currency ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "currency", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "currency",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
                           className="rounded border border-[#1F2933] bg-[#0A0F14] p-2"
                           placeholder="Payment methods"
-                          value={toCommaSeparated(newVendors[product.id]?.paymentMethods as string[])}
+                          value={toCommaSeparated(
+                            newVendors[product.id]
+                              ?.paymentMethods as string[],
+                          )}
                           onChange={(event) =>
                             updateNewVendorField(
                               product.id,
@@ -719,7 +922,11 @@ export default function AdminProductsPage() {
                           placeholder="CTA label"
                           value={newVendors[product.id]?.ctaLabel ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "ctaLabel", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "ctaLabel",
+                              event.target.value,
+                            )
                           }
                         />
                         <input
@@ -727,7 +934,11 @@ export default function AdminProductsPage() {
                           placeholder="Avatar URL"
                           value={newVendors[product.id]?.avatarUrl ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "avatarUrl", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "avatarUrl",
+                              event.target.value,
+                            )
                           }
                         />
                         <textarea
@@ -735,7 +946,11 @@ export default function AdminProductsPage() {
                           placeholder="Notes"
                           value={newVendors[product.id]?.notes ?? ""}
                           onChange={(event) =>
-                            updateNewVendorField(product.id, "notes", event.target.value)
+                            updateNewVendorField(
+                              product.id,
+                              "notes",
+                              event.target.value,
+                            )
                           }
                         />
                       </div>
