@@ -8,31 +8,19 @@ import { SearchBar } from "@/components/SearchBar";
 import { products } from "@/data/products";
 import type { Product } from "@/data/types";
 
-const categories: (Product["category"] | "All")[] = [
-  "All",
-  "Executors",
-  "Scripts",
-  "Tools",
-  "Misc",
-];
-
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState<Product["category"] | "All">("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const filteredProducts = products.filter((product) => {
-    const matchesCategory =
-      activeCategory === "All" || product.category === activeCategory;
-
     const query = searchQuery.trim().toLowerCase();
     const matchesQuery =
       query.length === 0 ||
       product.name.toLowerCase().includes(query) ||
       product.tags?.some((tag) => tag.toLowerCase().includes(query));
 
-    return matchesCategory && matchesQuery;
+    return product.category === "Executors" && matchesQuery;
   });
 
   const handleProductClick = (product: Product) => {
@@ -47,15 +35,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#03060A] text-white">
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:py-16">
+      <main className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-8 md:gap-9 md:py-10">
         <Hero />
-        <SearchBar
-          activeCategory={activeCategory}
-          categories={categories}
-          searchQuery={searchQuery}
-          onCategoryChange={setActiveCategory}
-          onSearchChange={setSearchQuery}
-        />
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
         <ProductGrid products={filteredProducts} onProductClick={handleProductClick} />
       </main>
       <ProductModal
