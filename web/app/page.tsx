@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { Hero } from "@/components/Hero";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -52,6 +53,18 @@ export default function Home() {
         <main className="mx-auto flex w-full flex-1 flex-col items-center justify-center px-6 pb-12">
           <div className="w-full max-w-6xl">
             <div className="rounded-2xl border border-[#1F2933] bg-gradient-to-br from-[#0A0F14] to-[#050709] p-8 shadow-2xl shadow-[#14A5FF]/10">
+              <div className="mb-5 flex items-center justify-center">
+                <div className="rounded-full border border-[#1F2933] bg-[#0A0F14] p-3 shadow-[0_0_28px_rgba(31,176,255,0.35)]">
+                  <Image
+                    src="/key-kingdom-pfp.png"
+                    alt="Key-Kingdom logo"
+                    width={144}
+                    height={144}
+                    className="h-24 w-24 md:h-28 md:w-28"
+                    priority
+                  />
+                </div>
+              </div>
               <div className="mb-6">
                 <SearchBar
                   searchQuery={searchQuery}
