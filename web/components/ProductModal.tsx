@@ -23,8 +23,8 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
           Close
         </button>
 
-        <div className="flex flex-col gap-6 md:flex-row">
-          <div className="flex-1 space-y-3">
+        <div className="flex max-h-[75vh] flex-col gap-6 overflow-y-auto pr-1 md:flex-row">
+          <div className="flex-1 space-y-4">
             <div className="relative h-40 w-full overflow-hidden rounded-2xl bg-[#0F141A] ring-1 ring-[#1A1F25]">
               <Image
                 src={product.heroImageUrl ?? product.iconUrl}
@@ -33,10 +33,12 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                 className="object-cover"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.24em] text-[#1FB0FF]">{product.category}</p>
               <h2 className="text-3xl font-semibold text-white">{product.name}</h2>
-              <p className="mt-2 text-zinc-300">{product.description}</p>
+              <p className="leading-relaxed text-zinc-300" data-testid="product-description">
+                {product.description}
+              </p>
             </div>
             <ul className="grid gap-2 text-sm text-zinc-200 sm:grid-cols-2">
               {product.features.map((feature) => (

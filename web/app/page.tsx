@@ -8,8 +8,6 @@ import { SearchBar } from "@/components/SearchBar";
 import { products } from "@/data/products";
 import type { Product } from "@/data/types";
 
-
-
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -52,36 +50,25 @@ export default function Home() {
 
       <main className="mx-auto flex w-full flex-col items-center justify-center px-6 pb-12">
         <div className="w-full max-w-6xl">
-          {/* Search Container */}
-          <div className="mb-8 rounded-2xl border border-[#1F2933] bg-gradient-to-br from-[#0A0F14] to-[#050709] p-8 shadow-2xl shadow-[#14A5FF]/10">
-            <h2 className="mb-8 text-center text-3xl font-bold text-white">
-              Find Your Keys
-            </h2>
-
-            {/* Search Bar */}
-            <div className="mb-4">
+          <div className="rounded-2xl border border-[#1F2933] bg-gradient-to-br from-[#0A0F14] to-[#050709] p-8 shadow-2xl shadow-[#14A5FF]/10">
+            <div className="mb-6">
               <SearchBar
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
               />
             </div>
 
-            <p className="text-center text-sm text-[#9CA3AF]">
-              {sortedProducts.length} {sortedProducts.length === 1 ? "product" : "products"} available
-            </p>
-          </div>
-
-          {/* Products Section */}
-          <div className="rounded-2xl border border-[#1F2933] bg-gradient-to-br from-[#0A0F14] to-[#050709] p-8 shadow-2xl shadow-[#14A5FF]/10">
-            {sortedProducts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-16">
-                <div className="text-6xl">🔍</div>
-                <h3 className="text-xl font-semibold text-white">No products found</h3>
-                <p className="text-sm text-[#9CA3AF]">Try adjusting your search or category</p>
-              </div>
-            ) : (
-              <ProductGrid products={sortedProducts} onProductClick={handleProductClick} />
-            )}
+            <div className="rounded-2xl border border-[#1F2933] bg-[#0A0F14] p-6 shadow-[0_0_18px_rgba(31,176,255,0.14)]">
+              {sortedProducts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center gap-4 py-16">
+                  <div className="text-6xl">🔍</div>
+                  <h3 className="text-xl font-semibold text-white">No products found</h3>
+                  <p className="text-sm text-[#9CA3AF]">Try adjusting your search or category</p>
+                </div>
+              ) : (
+                <ProductGrid products={sortedProducts} onProductClick={handleProductClick} />
+              )}
+            </div>
           </div>
         </div>
       </main>
