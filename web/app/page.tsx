@@ -13,6 +13,14 @@ export default function Home() {
   const [sortOption, setSortOption] = useState<SortOption>("featured");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [activeCategory, setActiveCategory] = useState<Product["category"] | "All">(
+    "All",
+  );
+
+  const categories = useMemo<(Product["category"] | "All")[]>(() => {
+    const uniqueCategories = Array.from(new Set(products.map((product) => product.category)));
+    return ["All", ...uniqueCategories];
+  }, []);
 
   const filteredProducts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -28,7 +36,7 @@ export default function Home() {
 
       return matchesCategory && matchesQuery;
     });
-  }, [searchQuery]);
+  }, [activeCategory, searchQuery]);
 
   const sortedProducts = useMemo(() => {
     const sorted = [...filteredProducts];
