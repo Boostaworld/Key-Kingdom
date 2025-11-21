@@ -6,7 +6,7 @@ This repository contains the **official brand specification** for Key-Kingdom, i
 - Design tokens (colors, typography, spacing)
 - UI component rules
 - Machine-readable brand data (JSON / YAML) for AI agents, design systems, and apps
-
+“Dark mode neon blue / cyan brand”
 ## Files
 
 - `Key-Kingdom_BRAND_SPEC.md`  
