@@ -268,12 +268,22 @@ export default function AdminProductsPage() {
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Category
-              <input
+              <select
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.category ?? ""}
-                onChange={(event) => setNewProduct((prev) => ({ ...prev, category: event.target.value }))}
+                onChange={(event) =>
+                  setNewProduct((prev) => ({
+                    ...prev,
+                    category: event.target.value as Product["category"],
+                  }))
+                }
                 required
-              />
+              >
+                <option value="Executors">Executors</option>
+                <option value="Bundles">Bundles</option>
+                <option value="Vendors">Vendors</option>
+                <option value="Tools">Tools</option>
+              </select>
             </label>
             <label className="flex flex-col gap-1 text-sm">
               Icon URL
