@@ -15,6 +15,7 @@ This document tells AI agents:
 - how to reference the other files in this repository  
 
 Agents should **treat this file as the governing instruction layer** above all others.
+Primary accent is neon blue (#14A5FF) with glow steps (#32C8FF, #5FD8FF, #66E1FF).
 
 ============================================================
 # 2. REFERENCING OTHER FILES
