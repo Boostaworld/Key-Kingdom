@@ -11,9 +11,7 @@ async function resolveProductId(
   params: { productId?: string } | Promise<{ productId?: string }> | undefined,
   request: Request,
 ) {
-  const resolved = typeof (params as Promise<{ productId?: string }>)?.then === "function"
-    ? await (params as Promise<{ productId?: string }>)
-    : params;
+  const resolved = await params;
 
   if (resolved?.productId) return resolved.productId;
   const segments = new URL(request.url).pathname.split("/").filter(Boolean);

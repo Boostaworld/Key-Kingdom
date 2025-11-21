@@ -13,10 +13,7 @@ async function resolveParams(
     | undefined,
   request: Request,
 ) {
-  const resolved = typeof (params as Promise<{ productId: string; vendorId: string }>)?.then ===
-    "function"
-    ? await (params as Promise<{ productId: string; vendorId: string }>)
-    : params;
+  const resolved = await params;
 
   if (resolved?.productId && resolved?.vendorId) return resolved;
 
