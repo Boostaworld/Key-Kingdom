@@ -62,7 +62,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
               {product.vendorLinks.map((vendor) => (
                 <a
                   key={vendor.id}
-                  href={vendor.url}
+                  href={vendor.redirectUrl ?? vendor.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between gap-3 rounded-xl bg-[#0A0F14] p-4 ring-1 ring-[#1A1F25] transition hover:border-[#1FB0FF]/60 hover:ring-[#1FB0FF]/60"
@@ -87,13 +87,18 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                       <p className="text-xs text-zinc-400">{vendor.notes ?? "Secure checkout"}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-[#1FB0FF]">
-                      {vendor.currency} {vendor.price.toFixed(2)}
-                    </p>
-                    <p className="text-[11px] uppercase tracking-wide text-zinc-400">
-                      {vendor.paymentMethods.join(" • ")}
-                    </p>
+                  <div className="flex items-center gap-3 text-right">
+                    <div>
+                      <p className="text-sm font-semibold text-[#1FB0FF]">
+                        {vendor.currency} {vendor.price.toFixed(2)}
+                      </p>
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-400">
+                        {vendor.paymentMethods.join(" • ")}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-[#12A0F9]/10 px-3 py-1 text-xs font-semibold text-[#1FB0FF] ring-1 ring-[#1FB0FF]/40">
+                      {vendor.ctaLabel ?? "Buy now"}
+                    </span>
                   </div>
                 </a>
               ))}
