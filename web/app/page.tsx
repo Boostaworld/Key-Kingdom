@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Hero } from "@/components/Hero";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductModal } from "@/components/ProductModal";
