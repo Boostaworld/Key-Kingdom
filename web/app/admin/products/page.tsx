@@ -15,6 +15,11 @@ type NewProductDraft = Partial<AdminProduct> & {
   tagsText?: string;
 };
 
+type EditProductDraft = AdminProduct & {
+  featuresText: string;
+  tagsText: string;
+};
+
 function toCommaSeparated(value: string[] | undefined) {
   return value?.join(", ") ?? "";
 }
@@ -25,6 +30,27 @@ function parseCommaSeparated(value: string | undefined) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function arraysEqual(a: string[] = [], b: string[] = []) {
+  if (a.length !== b.length) return false;
+  return a.every((value, index) => value === b[index]);
+}
+
+function normalizeSortOrder(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function normalizeOptionalText(value: string | undefined | null) {
+  if (value === undefined || value === null) return "";
+  return value;
+}
+
+function toNullableString(value: string | undefined | null) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }
 
 export default function AdminProductsPage() {
@@ -46,6 +72,8 @@ export default function AdminProductsPage() {
     lastUpdated: "",
   });
   const [newVendors, setNewVendors] = useState<Record<string, VendorDraft>>({});
+  const [editingProduct, setEditingProduct] = useState<EditProductDraft | null>(null);
+  const [editingSource, setEditingSource] = useState<AdminProduct | null>(null);
 
   const vendorCounts = useMemo(
     () =>
@@ -68,18 +96,6 @@ export default function AdminProductsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchProducts();
   }, [fetchProducts]);
-
-  const updateProductField = (
-    productId: string,
-    key: keyof AdminProduct,
-    value: unknown,
-  ) => {
-    setProducts((current) =>
-      current.map((product) =>
-        product.id === productId ? { ...product, [key]: value } : product,
-      ),
-    );
-  };
 
   const updateVendorField = (
     productId: string,
@@ -112,6 +128,11 @@ export default function AdminProductsPage() {
     }));
   };
 
+  const handleGenerateId = () => {
+    const randomId = Math.floor(10000000 + Math.random() * 90000000).toString();
+    setNewProduct((prev) => ({ ...prev, id: randomId }));
+  };
+
   const handleCreateProduct = async (
     event: React.FormEvent<HTMLFormElement>,
   ) => {
@@ -120,12 +141,17 @@ export default function AdminProductsPage() {
 
     const payload = {
       ...newProduct,
+      id: newProduct.id?.trim(),
+      name: newProduct.name?.trim(),
+      slug: newProduct.slug?.trim(),
+      iconUrl: newProduct.iconUrl?.trim(),
+      heroImageUrl: toNullableString(normalizeOptionalText(newProduct.heroImageUrl)),
+      tagline: toNullableString(normalizeOptionalText(newProduct.tagline)),
+      description: newProduct.description?.trim(),
       features: parseCommaSeparated(newProduct.featuresText),
       tags: parseCommaSeparated(newProduct.tagsText),
-      sortOrder:
-        newProduct.sortOrder === undefined || newProduct.sortOrder === null
-          ? undefined
-          : Number(newProduct.sortOrder),
+      sortOrder: normalizeSortOrder(newProduct.sortOrder) ?? null,
+      lastUpdated: toNullableString(normalizeOptionalText(newProduct.lastUpdated)),
     };
 
     const response = await fetch("/api/admin/products", {
@@ -155,30 +181,83 @@ export default function AdminProductsPage() {
     setSaving(false);
   };
 
-  const handleSaveProduct = async (product: AdminProduct) => {
-    setSaving(true);
-    const payload = {
-      name: product.name,
-      slug: product.slug,
-      iconUrl: product.iconUrl,
-      heroImageUrl: product.heroImageUrl,
-      tagline: product.tagline,
-      description: product.description,
-      features: product.features,
-      sortOrder: product.sortOrder ?? null,
-      isUpdated: product.isUpdated,
-      tags: product.tags,
-      lastUpdated: product.lastUpdated,
-    };
+  const startEditingProduct = (product: AdminProduct) => {
+    setEditingSource(product);
+    setEditingProduct({
+      ...product,
+      featuresText: toCommaSeparated(product.features),
+      tagsText: toCommaSeparated(product.tags ?? []),
+      heroImageUrl: normalizeOptionalText(product.heroImageUrl),
+      tagline: normalizeOptionalText(product.tagline),
+      lastUpdated: normalizeOptionalText(product.lastUpdated),
+      sortOrder: product.sortOrder ?? undefined,
+    });
+  };
 
-    await fetch(`/api/admin/products/${product.id}`, {
+  const closeEditingProduct = () => {
+    setEditingProduct(null);
+    setEditingSource(null);
+  };
+
+  const handleSaveProductUpdates = async () => {
+    if (!editingProduct || !editingSource) return;
+
+    const updates: Record<string, unknown> = {};
+
+    const trimmedName = editingProduct.name.trim();
+    if (trimmedName && trimmedName !== editingSource.name) updates.name = trimmedName;
+
+    const trimmedSlug = editingProduct.slug.trim();
+    if (trimmedSlug && trimmedSlug !== editingSource.slug) updates.slug = trimmedSlug;
+
+    const trimmedIcon = editingProduct.iconUrl.trim();
+    if (trimmedIcon && trimmedIcon !== editingSource.iconUrl)
+      updates.iconUrl = trimmedIcon;
+
+    const heroImageUrl = toNullableString(editingProduct.heroImageUrl);
+    if (heroImageUrl !== (editingSource.heroImageUrl ?? null))
+      updates.heroImageUrl = heroImageUrl;
+
+    const tagline = toNullableString(editingProduct.tagline);
+    if (tagline !== (editingSource.tagline ?? null)) updates.tagline = tagline;
+
+    const description = editingProduct.description.trim();
+    if (description && description !== editingSource.description)
+      updates.description = description;
+
+    const sortOrder = normalizeSortOrder(editingProduct.sortOrder);
+    const originalSort = normalizeSortOrder(editingSource.sortOrder);
+    if ((sortOrder ?? null) !== (originalSort ?? null))
+      updates.sortOrder = sortOrder ?? null;
+
+    const features = parseCommaSeparated(editingProduct.featuresText);
+    if (!arraysEqual(features, editingSource.features)) updates.features = features;
+
+    const tags = parseCommaSeparated(editingProduct.tagsText);
+    if (!arraysEqual(tags, editingSource.tags ?? [])) updates.tags = tags;
+
+    const lastUpdated = toNullableString(editingProduct.lastUpdated);
+    if (lastUpdated !== (editingSource.lastUpdated ?? null))
+      updates.lastUpdated = lastUpdated;
+
+    if (editingProduct.isUpdated !== editingSource.isUpdated)
+      updates.isUpdated = editingProduct.isUpdated;
+
+    if (!Object.keys(updates).length) {
+      closeEditingProduct();
+      return;
+    }
+
+    setSaving(true);
+    await fetch(`/api/admin/products/${editingSource.id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(updates),
     });
 
     await fetchProducts();
     setSaving(false);
+    closeEditingProduct();
   };
 
   const handleDeleteProduct = async (productId: string) => {
@@ -259,7 +338,16 @@ export default function AdminProductsPage() {
             className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2"
           >
             <label className="flex flex-col gap-1 text-sm">
-              ID
+              <span className="flex items-center justify-between">
+                <span>ID</span>
+                <button
+                  type="button"
+                  className="text-xs text-[#1FB0FF] underline"
+                  onClick={handleGenerateId}
+                >
+                  Random 8-digit ID
+                </button>
+              </span>
               <input
                 className="rounded border border-[#1F2933] bg-[#050709] p-2"
                 value={newProduct.id ?? ""}
@@ -466,181 +554,80 @@ export default function AdminProductsPage() {
                       <span>Vendors: {vendorCounts[product.id] ?? 0}</span>
                       <span>•</span>
                       <span>Sort: {product.sortOrder ?? "∞"}</span>
-                      <button
-                        className="ml-3 text-[#FF6B6B]"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        disabled={saving}
-                      >
-                        Delete
-                      </button>
+                      <span>•</span>
+                      <span>{product.isUpdated ? "Updated" : "Draft"}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 gap-3 rounded-lg border border-[#1F2933] bg-[#050709] p-4 md:grid-cols-2">
+                    <div className="flex flex-col gap-2 text-sm text-[#9CA3AF]">
+                      <p className="text-white">Slug</p>
+                      <p className="truncate">{product.slug}</p>
+                      <p className="text-white">Icon URL</p>
+                      <p className="truncate">{product.iconUrl}</p>
+                      <p className="text-white">Hero image URL</p>
+                      <p className="truncate">{product.heroImageUrl || "—"}</p>
+                      <p className="text-white">Tagline</p>
+                      <p className="truncate">{product.tagline || "—"}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 text-sm text-[#9CA3AF]">
+                      <p className="text-white">Description</p>
+                      <p className="min-h-[48px] whitespace-pre-wrap">{product.description}</p>
+                      <p className="text-white">Sort order</p>
+                      <p>{product.sortOrder ?? "∞"}</p>
+                      <p className="text-white">Last updated</p>
+                      <p>{product.lastUpdated || "—"}</p>
+                    </div>
+                    <div className="md:col-span-2 flex flex-col gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">Features</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {product.features.length ? (
+                            product.features.map((feature) => (
+                              <span
+                                key={feature}
+                                className="rounded-full border border-[#1F2933] bg-[#0A0F14] px-3 py-1 text-xs text-[#9CA3AF]"
+                              >
+                                {feature}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-[#6B7280]">No features listed</span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">Tags</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {product.tags?.length ? (
+                            product.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full border border-[#1F2933] bg-[#0A0F14] px-3 py-1 text-xs text-[#9CA3AF]"
+                              >
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-[#6B7280]">No tags set</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <label className="flex flex-col gap-1 text-sm">
-                      Name
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.name}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "name",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Slug
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.slug}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "slug",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Icon URL
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.iconUrl}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "iconUrl",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Hero image URL
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.heroImageUrl ?? ""}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "heroImageUrl",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Tagline
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.tagline ?? ""}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "tagline",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Sort order
-                      <input
-                        type="number"
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.sortOrder ?? ""}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "sortOrder",
-                            Number(event.target.value),
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm md:col-span-2">
-                      Description
-                      <textarea
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.description}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "description",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Features (comma separated)
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={toCommaSeparated(product.features)}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "features",
-                            parseCommaSeparated(event.target.value),
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Tags (comma separated)
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={toCommaSeparated(product.tags ?? [])}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "tags",
-                            parseCommaSeparated(event.target.value),
-                          )
-                        }
-                      />
-                    </label>
-                    <label className="flex flex-row items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={product.isUpdated}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "isUpdated",
-                            event.target.checked,
-                          )
-                        }
-                      />
-                      Is updated
-                    </label>
-                    <label className="flex flex-col gap-1 text-sm">
-                      Last updated
-                      <input
-                        className="rounded border border-[#1F2933] bg-[#050709] p-2"
-                        value={product.lastUpdated ?? ""}
-                        onChange={(event) =>
-                          updateProductField(
-                            product.id,
-                            "lastUpdated",
-                            event.target.value,
-                          )
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="mt-4 flex justify-end">
+                  <div className="mt-4 flex flex-wrap justify-end gap-3">
                     <button
-                      className="rounded bg-[#12A0F9] px-4 py-2 font-semibold text-black shadow-[0_0_18px_rgba(31,176,255,0.65)]"
-                      onClick={() => handleSaveProduct(product)}
+                      className="rounded border border-[#1F2933] px-4 py-2 text-sm font-semibold text-[#9CA3AF] hover:border-[#1FB0FF] hover:text-white"
+                      onClick={() => startEditingProduct(product)}
+                    >
+                      Edit product
+                    </button>
+                    <button
+                      className="rounded bg-[#FF6B6B] px-4 py-2 text-sm font-semibold text-black shadow-[0_0_16px_rgba(255,107,107,0.35)]"
+                      onClick={() => handleDeleteProduct(product.id)}
                       disabled={saving}
                     >
-                      Save product
+                      Delete
                     </button>
                   </div>
 
@@ -969,6 +956,202 @@ export default function AdminProductsPage() {
               ))}
           </div>
         </section>
+        {editingProduct && editingSource && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border border-[#1F2933] bg-[#0A0F14] p-6 shadow-[0_0_24px_rgba(31,176,255,0.35)]">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm uppercase tracking-wide text-[#1FB0FF]">
+                    Edit product
+                  </p>
+                  <h3 className="text-2xl font-semibold">{editingSource.name}</h3>
+                  <p className="text-xs text-[#9CA3AF]">Only changed fields will be updated.</p>
+                </div>
+                <button
+                  className="text-sm text-[#9CA3AF] hover:text-white"
+                  onClick={closeEditingProduct}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <label className="flex flex-col gap-1 text-sm">
+                  Name
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.name}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, name: event.target.value } : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Slug
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.slug}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, slug: event.target.value } : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Icon URL
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.iconUrl}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, iconUrl: event.target.value } : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Hero image URL
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.heroImageUrl ?? ""}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev
+                          ? { ...prev, heroImageUrl: event.target.value }
+                          : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Tagline
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.tagline ?? ""}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, tagline: event.target.value } : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Sort order
+                  <input
+                    type="number"
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.sortOrder ?? ""}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              sortOrder:
+                                event.target.value === ""
+                                  ? undefined
+                                  : Number(event.target.value),
+                            }
+                          : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm md:col-span-2">
+                  Description
+                  <textarea
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.description}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, description: event.target.value } : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Features (comma separated)
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.featuresText}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              featuresText: event.target.value,
+                            }
+                          : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Tags (comma separated)
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.tagsText}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              tagsText: event.target.value,
+                            }
+                          : prev,
+                      )
+                    }
+                  />
+                </label>
+                <label className="flex flex-row items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={editingProduct.isUpdated}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev ? { ...prev, isUpdated: event.target.checked } : prev,
+                      )
+                    }
+                  />
+                  Is updated
+                </label>
+                <label className="flex flex-col gap-1 text-sm">
+                  Last updated
+                  <input
+                    className="rounded border border-[#1F2933] bg-[#050709] p-2"
+                    value={editingProduct.lastUpdated ?? ""}
+                    onChange={(event) =>
+                      setEditingProduct((prev) =>
+                        prev
+                          ? { ...prev, lastUpdated: event.target.value }
+                          : prev,
+                      )
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  className="rounded border border-[#1F2933] px-4 py-2 text-sm font-semibold text-[#9CA3AF] hover:border-[#1FB0FF] hover:text-white"
+                  onClick={closeEditingProduct}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="rounded bg-[#12A0F9] px-4 py-2 text-sm font-semibold text-black shadow-[0_0_18px_rgba(31,176,255,0.65)]"
+                  onClick={handleSaveProductUpdates}
+                  disabled={saving}
+                >
+                  {saving ? "Saving..." : "Save changes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
