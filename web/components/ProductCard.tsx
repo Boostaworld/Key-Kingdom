@@ -8,11 +8,14 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const lastUpdatedDate = product.lastUpdated ? new Date(product.lastUpdated) : null;
-  const daysSinceUpdate = lastUpdatedDate
-    ? (Date.now() - lastUpdatedDate.getTime()) / (1000 * 60 * 60 * 24)
-    : null;
-  const isOutdated = daysSinceUpdate === null ? false : daysSinceUpdate > 90;
+  const isOutdated = !product.isUpdated;
+  const statusTitle = product.isUpdated
+    ? product.lastUpdated
+      ? `Recently updated — last checked ${product.lastUpdated}`
+      : "Marked as recently updated"
+    : product.lastUpdated
+      ? `Outdated pricing — last updated ${product.lastUpdated}`
+      : "Outdated pricing";
 
   return (
     <button
@@ -44,22 +47,16 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
           ${product.lowestPrice.toFixed(2)}
         </div>
 
-        {product.lastUpdated && (
-          <span
-            className="relative inline-flex h-[2px] w-[2px] rounded-full"
-            style={{
-              backgroundColor: isOutdated ? "#EF4444" : "#22C55E",
-              boxShadow: isOutdated
-                ? "0 0 10px rgba(239,68,68,0.75)"
-                : "0 0 10px rgba(34,197,94,0.75)",
-            }}
-            title={
-              isOutdated
-                ? "Outdated pricing — updated more than 90 days ago"
-                : "Recently updated pricing"
-            }
-          />
-        )}
+        <span
+          className="relative inline-flex h-[2px] w-[2px] rounded-full"
+          style={{
+            backgroundColor: isOutdated ? "#EF4444" : "#22C55E",
+            boxShadow: isOutdated
+              ? "0 0 10px rgba(239,68,68,0.75)"
+              : "0 0 10px rgba(34,197,94,0.75)",
+          }}
+          title={statusTitle}
+        />
       </div>
 
       <div className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-[#1F2933] bg-[#111827] shadow-[0_0_12px_rgba(101,225,255,0.25)] transition duration-200 ease-out group-hover:border-[#14A5FF] group-hover:shadow-[0_0_18px_rgba(20,165,255,0.45)]">
