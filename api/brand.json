@@ -1,25 +1,33 @@
 {
-  "name": "SoftLynx",
+  "name": "Key-Kingdom",
   "version": "1.0",
   "description": "Neon-tech brand focused on software access, linking, and connectivity.",
-"colors": {
-  "primary": "#14A5FF",
-  "glowInner": "#32C8FF",
-  "glowOuter": "#5FD8FF",
-  "glowHalo": "#66E1FF",
-  "background": "#03060A",
-  "gray1": "#111827",
-  "gray2": "#1F2933",
-  "text": "#FFFFFF"
-},
+  "colors": {
+    "primary": "#14A5FF",
+    "glowInner": "#32C8FF",
+    "glowOuter": "#5FD8FF",
+    "glowHalo": "#66E1FF",
+    "background": "#03060A",
+    "gray1": "#111827",
+    "gray2": "#1F2933",
+    "text": "#FFFFFF"
+  },
   "typography": {
     "display": {
       "family": "Eurostile Next",
-      "fallbacks": ["Orbitron", "system-ui", "sans-serif"]
+      "fallbacks": [
+        "Orbitron",
+        "system-ui",
+        "sans-serif"
+      ]
     },
     "body": {
       "family": "Inter",
-      "fallbacks": ["Roboto", "system-ui", "sans-serif"]
+      "fallbacks": [
+        "Roboto",
+        "system-ui",
+        "sans-serif"
+      ]
     }
   },
   "spacing": {
@@ -35,8 +43,19 @@
     "lg": 16
   },
   "voice": {
-    "tone": ["clear", "efficient", "technical-friendly", "modern", "confident"],
-    "avoid": ["slang", "gamer-talk", "corporate-jargon", "overhype"]
+    "tone": [
+      "clear",
+      "efficient",
+      "technical-friendly",
+      "modern",
+      "confident"
+    ],
+    "avoid": [
+      "slang",
+      "gamer-talk",
+      "corporate-jargon",
+      "overhype"
+    ]
   },
   "ui": {
     "buttons": {
@@ -62,8 +81,14 @@
     }
   },
   "backgroundRules": {
-    "allowed": ["#03060A", "dark gradients"],
-    "disallowed": ["white", "light gray", "bright backgrounds"]
+    "allowed": [
+      "#03060A",
+      "dark gradients"
+    ],
+    "disallowed": [
+      "white",
+      "light gray",
+      "bright backgrounds"
+    ]
   }
 }
-

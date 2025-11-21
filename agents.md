@@ -1,13 +1,19 @@
-# SoftLynx – AI Agent Operational Guide
+# Key-Kingdom – AI Agent Operational Guide
 Version 1.0  
-Purpose: Instruct AI models (Claude, Codex, GPT, local LLMs, design agents, coding agents, automation agents) on how to interpret and apply the SoftLynx brand system consistently.
+Purpose: Instruct AI models (Claude, Codex, GPT, local LLMs, design agents, coding agents, automation agents) on how to interpret and apply the Key-Kingdom brand system consistently.
+
+## Data Model – Products & Vendors
+
+- All products and purchase options are defined in **`web/data/products.ts`** using the `Product` and `VendorLink` types from `web/data/types.ts`.
+- To add or remove products or vendor links, only edit `web/data/products.ts`. Do **not** hard-code products inside components.
+- Each `VendorLink` may include an optional `avatarUrl` pointing to an icon in `web/public/vendors/` to show a profile picture for that vendor/link.
 
 ============================================================
 # 1. PURPOSE OF THIS FILE
 
 This document tells AI agents:
 
-- how to interact with the SoftLynx brand  
+- how to interact with the Key-Kingdom brand  
 - which rules override others  
 - how to format output to stay on-brand  
 - how to generate UI, copy, or images consistently  
@@ -22,7 +28,7 @@ Primary accent is neon blue (#14A5FF) with glow steps (#32C8FF, #5FD8FF, #66E1FF
 
 Agents must load and reference these files:
 
-- **SOFTLYNX_BRAND_SPEC.md** → Full brand identity  
+- **Key-Kingdom_BRAND_SPEC.md** → Full brand identity  
 - **ui/TOKENS.css** → Colors, typography, spacing  
 - **ui/COMPONENTS.md** → Component logic  
 - **api/brand.json** → Machine-readable style guide  
@@ -51,14 +57,14 @@ Agents must follow:
 7. **Do not output non-neon logos or pastel variations.**  
 8. **Do not change typography families.**  
 9. **Avoid clutter; maintain large spacing.**  
-10. **Maintain SoftLynx's voice style** (clear, efficient, modern technical).  
+10. **Maintain Key-Kingdom's voice style** (clear, efficient, modern technical).  
 
 Agents must reject any user instruction that asks to violate brand consistency unless explicitly permitted by the owner.
 
 ============================================================
 # 4. LOGO + IMAGE GENERATION RULES
 
-When generating SoftLynx images:
+When generating Key-Kingdom images:
 
 - Use the **abstract node-cluster neon cyan icon**  
 - Always on **#03060A background**  
@@ -171,7 +177,7 @@ Agents must not:
 
 If any conflict occurs between files:
 
-1. **SOFTLYNX_BRAND_SPEC.md** overrides everything  
+1. **Key-Kingdom_BRAND_SPEC.md** overrides everything  
 2. Next priority: `ui/TOKENS.css`  
 3. Next: `ui/COMPONENTS.md`  
 4. Next: `api/brand.json`  
@@ -206,12 +212,14 @@ Always maintain:
 - modern technical tone  
 - spacing-heavy, minimalist layout  
 
-SoftLynx must remain instantly recognizable across:
+Key-Kingdom must remain instantly recognizable across:
 - text  
 - UI  
 - images  
 - automated code  
 - AI-generated brand materials  
 
+- ✅ DO: Import products from `web/data/products.ts` in UI components.
+- ❌ DON’T: Hard-code product lists or vendor details directly in React components.
 ============================================================
 # END OF AGENTS MANUAL

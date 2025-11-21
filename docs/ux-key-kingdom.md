@@ -8,18 +8,6 @@ Halo glow: #66E1FF at 20-30% opacity
 Text main: #FFFFFF (same)
 Text secondary: #D0D5DD (instead of #ccc)
 Text muted: #9CA3AF (instead of #888, #666)
-
-I need to:
-
-Go through all the specs I wrote (component map, hero, grid, modal, pseudocode instructions)
-Replace every mention of green with the appropriate blue from this palette
-Keep structure and wording the same, just swap colors
-Output a compact, updated spec
-Remember this blue palette for all future Key-Kingdom work
-
-Let me go section by section and make the swaps systematically.
-Key-Kingdom: Revised Architecture & Layout Spec (Neon Blue Palette)
-
 1. Component Map (Unchanged Structure)
 App (single-page, dark mode)
 ├─ Header / Hero
@@ -418,6 +406,3 @@ Desktop (>1200px): 5-column grid, full modal width (720px).
 Tablet (768-1199px): 3-column grid, modal 90% width max 600px.
 Mobile (<768px): 2-column grid, modal 95% width, reduce padding to 24px.
 Stack vendor rows vertically on mobile, reduce font sizes slightly.
-
-
-can i import this somewhere in the files as model-descriptions or something so codex knows to make models? or should i add a task explicitly telling codex to make models

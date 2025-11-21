@@ -1,0 +1,40 @@
+// web/data/types.ts
+
+export type PaymentMethod =
+    | "credit_card"
+    | "paypal"
+    | "crypto"
+    | "cashapp"
+    | "other";
+
+export interface VendorLink {
+    id: string;
+    vendorName: string;
+    url: string;
+    price: number;
+    currency: string;
+    paymentMethods: PaymentMethod[];
+    notes?: string;
+
+    // NEW: optional profile picture / icon for this specific link
+    avatarUrl?: string;     // e.g. "/vendors/keyvendor.png"
+}
+
+export interface Product {
+    id: string;
+    name: string;
+    slug: string;
+    category: "Executors" | "Scripts" | "Tools" | "Misc";
+    iconUrl: string;
+    heroImageUrl?: string;
+    tagline?: string;
+    description: string;
+    features: string[];
+
+    vendorLinks: VendorLink[];
+    lowestPrice: number;
+    vendorCount: number;
+
+    tags?: string[];
+    lastUpdated?: string;
+}

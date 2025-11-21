@@ -1,8 +1,8 @@
-name: SoftLynx
+name: Key-Kingdom
 version: "1.0"
 description: Neon-tech brand focused on software access, linking, and connectivity.
 
-"colors": {
+"colors": 
   primary: "#14A5FF"
   glowInner: "#32C8FF"
   glowOuter: "#5FD8FF"
