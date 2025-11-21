@@ -1,5 +1,4 @@
 "use client";
-
 import Image from "next/image";
 import type { Product } from "@/data/types";
 
@@ -31,8 +30,17 @@ export function ProductGrid({ products, onProductClick }: ProductGridProps) {
               onProductClick(product);
             }
           }}
-          className="group flex h-full flex-col gap-4 rounded-2xl border border-[#1F2933] bg-[#0A0F14] p-5 shadow-[0_0_16px_rgba(20,165,255,0.14)] transition duration-200 hover:-translate-y-1 hover:border-[#1FB0FF] hover:shadow-[0_0_32px_rgba(31,176,255,0.32)] focus:outline-none focus:ring-2 focus:ring-[#1FB0FF] focus:ring-offset-2 focus:ring-offset-[#03060A]"
+          className="group relative flex h-full flex-col gap-4 rounded-2xl border border-[#1F2933] bg-[#0A0F14] p-5 shadow-[0_0_16px_rgba(20,165,255,0.14)] transition duration-200 hover:-translate-y-1 hover:border-[#1FB0FF] hover:shadow-[0_0_32px_rgba(31,176,255,0.32)] focus:outline-none focus:ring-2 focus:ring-[#1FB0FF] focus:ring-offset-2 focus:ring-offset-[#03060A]"
         >
+          {/* Status Indicator Dot */}
+          <div className="absolute right-4 top-4">
+            {product.isUpdated ? (
+              <div className="flex h-3 w-3 items-center justify-center rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)]" />
+            ) : (
+              <div className="flex h-3 w-3 items-center justify-center rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)]" />
+            )}
+          </div>
+
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-[#0F141A] ring-1 ring-[#1A1F25]">
