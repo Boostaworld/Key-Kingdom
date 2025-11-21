@@ -12,31 +12,21 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = products.filter((product) => {
     const query = searchQuery.trim().toLowerCase();
 
-    return products.filter((product) => {
-      const matchesQuery =
-        query.length === 0 ||
-        product.name.toLowerCase().includes(query) ||
-        product.tags?.some((tag) => tag.toLowerCase().includes(query));
+    return (
+      query.length === 0 ||
+      product.name.toLowerCase().includes(query) ||
+      product.tags?.some((tag) => tag.toLowerCase().includes(query))
+    );
+  });
 
-      return matchesQuery;
-    });
-  }, [searchQuery]);
-
-  const sortedProducts = useMemo(() => {
-    const sorted = [...filteredProducts];
-
-    sorted.sort((a, b) => {
-      const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
-      const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
-      return orderA - orderB;
-    });
-
-    return sorted;
-  }, [filteredProducts]);
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+    const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+    return orderA - orderB;
+  });
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -72,7 +62,10 @@ export default function Home() {
             </span>
           </a>
         </div>
-        <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
         <ProductGrid products={sortedProducts} onProductClick={handleProductClick} />
       </main>
       <ProductModal
