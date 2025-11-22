@@ -48,8 +48,22 @@ type VendorLinkInput = {
   avatarUrl?: unknown;
 };
 
-function normalizeVendorLinks(value: unknown) {
-  if (!Array.isArray(value)) return { vendorLinks: [], error: null as string | null } as const;
+function normalizeVendorLinks(value: unknown): {
+  vendorLinks: {
+    id: string;
+    vendorName: string;
+    url: string;
+    redirectUrl?: string;
+    ctaLabel?: string;
+    price: number;
+    currency: string;
+    paymentMethods: string;
+    notes?: string;
+    avatarUrl?: string;
+  }[];
+  error: string | null;
+} {
+  if (!Array.isArray(value)) return { vendorLinks: [], error: null };
 
   const vendorLinks = [] as {
     id: string;
@@ -73,9 +87,9 @@ function normalizeVendorLinks(value: unknown) {
 
     if (!id || !vendorName || !url || !currency || !Number.isFinite(price)) {
       return {
-        vendorLinks: [] as typeof vendorLinks,
+        vendorLinks: [],
         error: "Each vendor link must include id, vendorName, url, currency, and a numeric price.",
-      } as const;
+      };
     }
 
     vendorLinks.push({
@@ -92,7 +106,7 @@ function normalizeVendorLinks(value: unknown) {
     });
   }
 
-  return { vendorLinks, error: null as string | null } as const;
+  return { vendorLinks, error: null };
 }
 
 export async function GET() {
@@ -132,11 +146,6 @@ export async function POST(request: Request) {
   if (vendorLinksError) {
     return NextResponse.json({ error: vendorLinksError }, { status: 400 });
   }
-
-  const sortOrder = normalizeOptionalNumber(body.sortOrder);
-  const heroImageUrl = normalizeOptionalString(body.heroImageUrl);
-  const tagline = normalizeOptionalString(body.tagline);
-  const lastUpdated = normalizeOptionalString(body.lastUpdated);
 
   const sortOrder = normalizeOptionalNumber(body.sortOrder);
   const heroImageUrl = normalizeOptionalString(body.heroImageUrl);
