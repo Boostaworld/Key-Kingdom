@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   normalizeStringArray,
@@ -23,6 +23,92 @@ function hydrateProduct(record: ProductWithVendors) {
   };
 }
 
+function normalizeOptionalString(value: unknown) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : null;
+}
+
+function normalizeOptionalNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+type VendorLinkInput = {
+  id?: unknown;
+  vendorName?: unknown;
+  url?: unknown;
+  redirectUrl?: unknown;
+  ctaLabel?: unknown;
+  price?: unknown;
+  currency?: unknown;
+  paymentMethods?: unknown;
+  notes?: unknown;
+  avatarUrl?: unknown;
+};
+
+function normalizeVendorLinks(value: unknown): {
+  vendorLinks: {
+    id: string;
+    vendorName: string;
+    url: string;
+    redirectUrl?: string;
+    ctaLabel?: string;
+    price: number;
+    currency: string;
+    paymentMethods: string;
+    notes?: string;
+    avatarUrl?: string;
+  }[];
+  error: string | null;
+} {
+  if (!Array.isArray(value)) return { vendorLinks: [], error: null };
+
+  const vendorLinks = [] as {
+    id: string;
+    vendorName: string;
+    url: string;
+    redirectUrl?: string;
+    ctaLabel?: string;
+    price: number;
+    currency: string;
+    paymentMethods: string;
+    notes?: string;
+    avatarUrl?: string;
+  }[];
+
+  for (const rawLink of value as VendorLinkInput[]) {
+    const id = typeof rawLink.id === "string" ? rawLink.id.trim() : String(rawLink.id ?? "").trim();
+    const vendorName = typeof rawLink.vendorName === "string" ? rawLink.vendorName.trim() : "";
+    const url = typeof rawLink.url === "string" ? rawLink.url.trim() : "";
+    const currency = typeof rawLink.currency === "string" ? rawLink.currency.trim() : "";
+    const price = Number(rawLink.price);
+
+    if (!id || !vendorName || !url || !currency || !Number.isFinite(price)) {
+      return {
+        vendorLinks: [],
+        error: "Each vendor link must include id, vendorName, url, currency, and a numeric price.",
+      };
+    }
+
+    vendorLinks.push({
+      id,
+      vendorName,
+      url,
+      redirectUrl: normalizeOptionalString(rawLink.redirectUrl) ?? undefined,
+      ctaLabel: normalizeOptionalString(rawLink.ctaLabel) ?? undefined,
+      price,
+      currency,
+      paymentMethods: stringifyStringArray(rawLink.paymentMethods),
+      notes: normalizeOptionalString(rawLink.notes) ?? undefined,
+      avatarUrl: normalizeOptionalString(rawLink.avatarUrl) ?? undefined,
+    });
+  }
+
+  return { vendorLinks, error: null };
+}
+
 export async function GET() {
   const products = await prisma.product.findMany({
     include: { vendorLinks: true },
@@ -35,13 +121,19 @@ export async function GET() {
 export async function POST(request: Request) {
   const body = await request.json();
 
+  const id = typeof body?.id === "string" ? body.id.trim() : String(body?.id ?? "").trim();
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
+  const iconUrl = typeof body?.iconUrl === "string" ? body.iconUrl.trim() : "";
+  const description =
+    typeof body?.description === "string" ? body.description.trim() : "";
+
   if (
-    !body?.id ||
-    !body.name ||
-    !body.slug ||
-    
-    !body.iconUrl ||
-    !body.description ||
+    !id ||
+    !name ||
+    !slug ||
+    !iconUrl ||
+    !description ||
     !Array.isArray(body.features) ||
     typeof body.isUpdated !== "boolean"
   ) {
@@ -50,37 +142,32 @@ export async function POST(request: Request) {
 
   const tags = normalizeStringArray(body.tags);
   const features = normalizeStringArray(body.features);
-  const vendorLinks = Array.isArray(body.vendorLinks)
-    ? body.vendorLinks.map((link: Record<string, unknown>) => ({
-        id: String(link.id),
-        vendorName: String(link.vendorName),
-        url: String(link.url),
-        redirectUrl: link.redirectUrl ? String(link.redirectUrl) : undefined,
-        ctaLabel: link.ctaLabel ? String(link.ctaLabel) : undefined,
-        price: Number(link.price),
-        currency: String(link.currency),
-        paymentMethods: stringifyStringArray(link.paymentMethods),
-        notes: link.notes ? String(link.notes) : undefined,
-        avatarUrl: link.avatarUrl ? String(link.avatarUrl) : undefined,
-      }))
-    : [];
+  const { vendorLinks, error: vendorLinksError } = normalizeVendorLinks(body.vendorLinks);
+  if (vendorLinksError) {
+    return NextResponse.json({ error: vendorLinksError }, { status: 400 });
+  }
+
+  const sortOrder = normalizeOptionalNumber(body.sortOrder);
+  const heroImageUrl = normalizeOptionalString(body.heroImageUrl);
+  const tagline = normalizeOptionalString(body.tagline);
+  const lastUpdated = normalizeOptionalString(body.lastUpdated);
 
   try {
     const product = await prisma.product.create({
       data: {
-        id: String(body.id),
-        name: body.name,
-        slug: body.slug,
-        
-        iconUrl: body.iconUrl,
-        heroImageUrl: body.heroImageUrl ?? null,
-        tagline: body.tagline ?? null,
-        description: body.description,
+        id,
+        name,
+        slug,
+
+        iconUrl,
+        heroImageUrl,
+        tagline,
+        description,
         features: stringifyStringArray(features),
-        sortOrder: body.sortOrder ?? null,
+        sortOrder,
         isUpdated: body.isUpdated,
         tags: stringifyStringArray(tags),
-        lastUpdated: body.lastUpdated ?? null,
+        lastUpdated,
         vendorLinks: vendorLinks.length ? { create: vendorLinks } : undefined,
       },
       include: { vendorLinks: true },
@@ -96,6 +183,18 @@ export async function POST(request: Request) {
     return NextResponse.json(hydrateProduct(product), { status: 201 });
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Product id or slug already exists" },
+        { status: 409 },
+      );
+    }
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return NextResponse.json(
+        { error: "Product payload is invalid. Please check required fields and vendor link pricing." },
+        { status: 400 },
+      );
+    }
     return NextResponse.json({ error: "Unable to create product" }, { status: 500 });
   }
 }
