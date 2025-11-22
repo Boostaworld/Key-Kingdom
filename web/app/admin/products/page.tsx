@@ -57,6 +57,7 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState<NewProductDraft>({
     id: "",
     name: "",
@@ -93,7 +94,6 @@ export default function AdminProductsPage() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchProducts();
   }, [fetchProducts]);
 
@@ -138,6 +138,7 @@ export default function AdminProductsPage() {
   ) => {
     event.preventDefault();
     setSaving(true);
+    setCreateError(null);
 
     const payload = {
       ...newProduct,
@@ -154,13 +155,20 @@ export default function AdminProductsPage() {
       lastUpdated: toNullableString(normalizeOptionalText(newProduct.lastUpdated)),
     };
 
-    const response = await fetch("/api/admin/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    if (response.ok) {
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        const message = body?.error ?? `Unable to create product (status ${response.status}).`;
+        setCreateError(message);
+        return;
+      }
+
       setNewProduct({
         id: "",
         name: "",
@@ -176,9 +184,12 @@ export default function AdminProductsPage() {
         lastUpdated: "",
       });
       await fetchProducts();
+    } catch (error) {
+      console.error(error);
+      setCreateError("Unable to create product. Please try again.");
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   };
 
   const startEditingProduct = (product: AdminProduct) => {
@@ -508,6 +519,11 @@ export default function AdminProductsPage() {
                 }
               />
             </label>
+            {createError && (
+              <div className="md:col-span-2 rounded border border-[#3B1C1C] bg-[#1A0E10] px-3 py-2 text-sm text-[#FCA5A5]">
+                {createError}
+              </div>
+            )}
             <div className="md:col-span-2">
               <button
                 type="submit"
