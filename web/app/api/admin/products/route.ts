@@ -29,6 +29,12 @@ function normalizeOptionalString(value: unknown) {
   return trimmed.length ? trimmed : null;
 }
 
+function normalizeRequiredString(value: unknown) {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number") return String(value).trim();
+  return "";
+}
+
 function normalizeOptionalNumber(value: unknown) {
   if (value === undefined || value === null || value === "") return null;
   const numeric = Number(value);
@@ -110,16 +116,51 @@ function normalizeVendorLinks(value: unknown): {
 }
 
 export async function GET() {
-  const products = await prisma.product.findMany({
-    include: { vendorLinks: true },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
+  try {
+    const products = await prisma.product.findMany({
+      include: { vendorLinks: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    });
 
-  return NextResponse.json(products.map(hydrateProduct));
+    return NextResponse.json(products.map(hydrateProduct));
+  } catch (error) {
+    console.error("Failed to load products", error);
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
+        { status: 503 },
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return NextResponse.json(
+        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.json({ error: "Unable to load products" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch (error) {
+    console.error("Failed to parse product payload", error);
+    return NextResponse.json(
+      { error: "Invalid JSON body. Please retry the request." },
+      { status: 400 },
+    );
+  }
+
+  const id = normalizeRequiredString(body.id);
+  const name = normalizeRequiredString(body.name);
+  const slug = normalizeRequiredString(body.slug);
+  const iconUrl = normalizeRequiredString(body.iconUrl);
+  const description = normalizeRequiredString(body.description);
 
   const id = typeof body?.id === "string" ? body.id.trim() : String(body?.id ?? "").trim();
   const name = typeof body?.name === "string" ? body.name.trim() : "";
@@ -183,6 +224,18 @@ export async function POST(request: Request) {
     return NextResponse.json(hydrateProduct(product), { status: 201 });
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
+        { status: 503 },
+      );
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return NextResponse.json(
+        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
+        { status: 503 },
+      );
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
         { error: "Product id or slug already exists" },
