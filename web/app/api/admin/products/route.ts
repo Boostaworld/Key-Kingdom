@@ -23,6 +23,41 @@ function hydrateProduct(record: ProductWithVendors) {
   };
 }
 
+function mapPrismaError(error: unknown, context: "load" | "create") {
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return NextResponse.json(
+      { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
+      { status: 503 },
+    );
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+    return NextResponse.json(
+      { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
+      { status: 503 },
+    );
+  }
+
+  if (context === "create") {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Product id or slug already exists" }, { status: 409 });
+    }
+
+    if (error instanceof Prisma.PrismaClientValidationError) {
+      return NextResponse.json(
+        { error: "Product payload is invalid. Please check required fields and vendor link pricing." },
+        { status: 400 },
+      );
+    }
+  }
+
+  console.error("Unhandled Prisma error", error);
+  return NextResponse.json(
+    { error: context === "load" ? "Unable to load products" : "Unable to create product" },
+    { status: 500 },
+  );
+}
+
 function normalizeOptionalString(value: unknown) {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
@@ -125,22 +160,7 @@ export async function GET() {
     return NextResponse.json(products.map(hydrateProduct));
   } catch (error) {
     console.error("Failed to load products", error);
-
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      return NextResponse.json(
-        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
-        { status: 503 },
-      );
-    }
-
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
-      return NextResponse.json(
-        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
-        { status: 503 },
-      );
-    }
-
-    return NextResponse.json({ error: "Unable to load products" }, { status: 500 });
+    return mapPrismaError(error, "load");
   }
 }
 
@@ -161,13 +181,6 @@ export async function POST(request: Request) {
   const slug = normalizeRequiredString(body.slug);
   const iconUrl = normalizeRequiredString(body.iconUrl);
   const description = normalizeRequiredString(body.description);
-
-  const id = typeof body?.id === "string" ? body.id.trim() : String(body?.id ?? "").trim();
-  const name = typeof body?.name === "string" ? body.name.trim() : "";
-  const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
-  const iconUrl = typeof body?.iconUrl === "string" ? body.iconUrl.trim() : "";
-  const description =
-    typeof body?.description === "string" ? body.description.trim() : "";
 
   if (
     !id ||
@@ -223,31 +236,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(hydrateProduct(product), { status: 201 });
   } catch (error) {
-    console.error(error);
-    if (error instanceof Prisma.PrismaClientInitializationError) {
-      return NextResponse.json(
-        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
-        { status: 503 },
-      );
-    }
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
-      return NextResponse.json(
-        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
-        { status: 503 },
-      );
-    }
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Product id or slug already exists" },
-        { status: 409 },
-      );
-    }
-    if (error instanceof Prisma.PrismaClientValidationError) {
-      return NextResponse.json(
-        { error: "Product payload is invalid. Please check required fields and vendor link pricing." },
-        { status: 400 },
-      );
-    }
-    return NextResponse.json({ error: "Unable to create product" }, { status: 500 });
+    return mapPrismaError(error, "create");
   }
 }
