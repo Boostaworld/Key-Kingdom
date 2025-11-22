@@ -162,6 +162,13 @@ export async function POST(request: Request) {
   const iconUrl = normalizeRequiredString(body.iconUrl);
   const description = normalizeRequiredString(body.description);
 
+  const id = typeof body?.id === "string" ? body.id.trim() : String(body?.id ?? "").trim();
+  const name = typeof body?.name === "string" ? body.name.trim() : "";
+  const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
+  const iconUrl = typeof body?.iconUrl === "string" ? body.iconUrl.trim() : "";
+  const description =
+    typeof body?.description === "string" ? body.description.trim() : "";
+
   if (
     !id ||
     !name ||
