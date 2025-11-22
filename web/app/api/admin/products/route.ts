@@ -138,6 +138,11 @@ export async function POST(request: Request) {
   const tagline = normalizeOptionalString(body.tagline);
   const lastUpdated = normalizeOptionalString(body.lastUpdated);
 
+  const sortOrder = normalizeOptionalNumber(body.sortOrder);
+  const heroImageUrl = normalizeOptionalString(body.heroImageUrl);
+  const tagline = normalizeOptionalString(body.tagline);
+  const lastUpdated = normalizeOptionalString(body.lastUpdated);
+
   try {
     const product = await prisma.product.create({
       data: {
