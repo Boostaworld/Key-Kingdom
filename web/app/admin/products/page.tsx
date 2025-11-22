@@ -58,6 +58,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState<NewProductDraft>({
     id: "",
     name: "",
@@ -87,10 +88,42 @@ export default function AdminProductsPage() {
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
-    const response = await fetch("/api/admin/products", { cache: "no-store" });
-    const data = await response.json();
-    setProducts(data);
-    setLoading(false);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/admin/products", { cache: "no-store" });
+
+      if (!response.ok) {
+        const bodyText = await response.text();
+        let message = `Unable to load products (status ${response.status}).`;
+
+        try {
+          const parsed = JSON.parse(bodyText);
+          if (parsed?.error) {
+            message = parsed.error;
+          } else if (typeof parsed === "string" && parsed.trim()) {
+            message = parsed.trim();
+          }
+        } catch {
+          if (bodyText.trim().length) {
+            message = bodyText.trim();
+          }
+        }
+
+        setLoadError(message);
+        setProducts([]);
+        return;
+      }
+
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Unable to fetch products", error);
+      setLoadError("Unable to load products. Please retry.");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -560,6 +593,11 @@ export default function AdminProductsPage() {
               <span className="text-sm text-[#9CA3AF]">Loading...</span>
             )}
           </div>
+          {loadError && (
+            <div className="rounded border border-[#3B1C1C] bg-[#1A0E10] px-3 py-2 text-sm text-[#FCA5A5]">
+              {loadError}
+            </div>
+          )}
           <div className="flex flex-col gap-4">
             {products
               .slice()

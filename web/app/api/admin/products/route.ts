@@ -116,12 +116,32 @@ function normalizeVendorLinks(value: unknown): {
 }
 
 export async function GET() {
-  const products = await prisma.product.findMany({
-    include: { vendorLinks: true },
-    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-  });
+  try {
+    const products = await prisma.product.findMany({
+      include: { vendorLinks: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    });
 
-  return NextResponse.json(products.map(hydrateProduct));
+    return NextResponse.json(products.map(hydrateProduct));
+  } catch (error) {
+    console.error("Failed to load products", error);
+
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
+        { status: 503 },
+      );
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return NextResponse.json(
+        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.json({ error: "Unable to load products" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -197,6 +217,18 @@ export async function POST(request: Request) {
     return NextResponse.json(hydrateProduct(product), { status: 201 });
   } catch (error) {
     console.error(error);
+    if (error instanceof Prisma.PrismaClientInitializationError) {
+      return NextResponse.json(
+        { error: "Database is unavailable. Please check the Prisma connection or migrate the schema." },
+        { status: 503 },
+      );
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+      return NextResponse.json(
+        { error: "Database schema is missing required tables. Run `prisma db push` to initialize." },
+        { status: 503 },
+      );
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json(
         { error: "Product id or slug already exists" },
